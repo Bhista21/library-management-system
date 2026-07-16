@@ -1,0 +1,64 @@
+form {
+  background-color: #fcfdff;
+  width: 100%;
+  border-radius: 16px;
+  max-width: 480px;
+  height: auto;
+  overflow: hidden;
+  color: rgb(0, 0, 0);
+  margin: 50px auto;
+  padding: 20px;
+}
+label {
+  display: block;
+  margin-bottom: 6px;
+  font-weight: bold;
+  font-size: 25px;
+}
+
+.radio-group {
+  display: flex;
+  gap: 20px;
+  margin-top: 8px;
+  margin-bottom: 30px;
+}
+.username,
+.password {
+  gap: 20px;
+  margin-top: 8px;
+  margin-bottom: 30px;
+}
+
+button {
+  padding: 8px;
+  font-size: 20px;
+  font-weight: bold;
+  cursor: pointer;
+  border-radius: 6px;
+  border: 1px solid rgba(0, 0, 0, 0.25);
+}
+.Submit-button {
+  display: flex;
+  justify-content: center;
+  margin-top: 20px;
+}
+input[type="text"],
+input[type="password"],
+select {
+  width: 100%;
+  padding: 10px 12px;
+  background-color: rgb(252, 248, 248);
+  border: 2px solid rgb(136, 132, 132);
+  border-radius: 8px;
+}
+
+.error {
+  color: rgb(255, 0, 0);
+  font-size: 0.8 em;
+  margin-top: 4px;
+  display: block;
+}
+.registration {
+  padding-top: 20px;
+  text-align: center;
+}
