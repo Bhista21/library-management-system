@@ -1,3 +1,19 @@
+.member-container {
+  padding-top: 50px;
+}
+.member {
+  width: 500px;
+  max-width: 90%;
+  margin: 0 auto;
+  padding: 40px 30px;
+  background: #fefefe;
+  height: 600px;
+  border: 1px solid rgba(9, 9, 9, 0.2);
+  border-radius: 25px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  justify-content: center;
+  text-align: center;
+}
 form {
   background-color: #fcfdff;
   width: 100%;

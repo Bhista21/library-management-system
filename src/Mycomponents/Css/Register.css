@@ -1,0 +1,110 @@
+.register-container {
+  width: 600px;
+  max-width: 90%;
+  margin: 0 auto;
+  padding: 30px;
+
+  border: 1px solid rgba(9, 9, 9, 0.2);
+  border-radius: 25px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+.register-title {
+  text-align: center;
+}
+
+.register-subtitle {
+  text-align: center;
+}
+
+.register-form {
+  width: 100%;
+  max-width: 480px;
+  margin: 50px auto;
+  padding: 20px;
+  border-radius: 16px;
+  overflow: hidden;
+  color: rgb(43, 44, 43);
+}
+
+.register-form label {
+  display: block;
+  margin-bottom: 6px;
+  font-weight: bold;
+  font-size: 15px;
+}
+
+.register-group {
+  margin-bottom: 18px;
+}
+
+.register-radio-group {
+  display: flex;
+  gap: 20px;
+  margin-top: 8px;
+}
+
+.register-checkbox-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 15px 0;
+}
+
+.register-button-group {
+  display: flex;
+  gap: 12px;
+  margin-top: 20px;
+  justify-content: center;
+}
+
+.register-form button {
+  padding: 8px;
+  font-size: 12px;
+  font-weight: bold;
+  cursor: pointer;
+  border-radius: 6px;
+  border: none;
+}
+
+.register-form input[type="text"],
+.register-form input[type="email"],
+.register-form input[type="number"],
+.register-form input[type="password"],
+.register-form select {
+  width: 100%;
+  padding: 10px 12px;
+  background-color: rgb(252, 248, 248);
+  border: 2px solid rgb(117, 116, 116);
+  border-radius: 8px;
+}
+
+.register-error {
+  color: rgb(255, 0, 0);
+  font-size: 0.8em;
+  margin-top: 4px;
+  display: block;
+}
+
+.register-success-popup {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background-color: rgb(79, 79, 87);
+  color: white;
+  padding: 25px 40px;
+  border-radius: 12px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+  z-index: 1000;
+  display: none;
+  text-align: center;
+  max-width: 300px;
+}
+
+.register-success-popup button {
+  margin-top: 15px;
+  background-color: white;
+  color: rgb(7, 7, 7);
+  padding: 10px 20px;
+}

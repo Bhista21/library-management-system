@@ -1,13 +1,33 @@
+.Home-container {
+  min-height: 100vh;
+  background-image: url("/Pics/bg.jpg");
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
 .hero {
   text-align: center;
   justify-items: center;
+  width: 750px;
+  max-width: 90%;
+  margin: 0 auto;
+  padding: 40px 30px;
+  background: rgba(106, 104, 104, 0.45);
+  backdrop-filter: blur(15px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 25px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
 }
 
 .hero h1 {
   font-size: 45px;
   color: #ffffff;
 }
-
 .hero p {
   font-size: 18px;
   color: #ffffff;

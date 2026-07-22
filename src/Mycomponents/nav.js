@@ -2,8 +2,8 @@ import React from "react";
 import "./Css/nav.css";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faBookOpenReader } from "@fortawesome/free-solid-svg-icons";
-import Member from "./Member";
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { Link } from "react-router-dom";
+
 function Nav() {
   return (
     <nav className="navbar">
@@ -13,16 +13,16 @@ function Nav() {
 
       <ul>
         <li>
-          <a href="/Home">Home</a>
+          <Link to="/Home">Home</Link>
         </li>
         <li>
-          <a href="/Books">Books</a>
+          <Link to="/Books">Books</Link>
         </li>
         <li>
-          <a href="/Member">Member</a>
+          <Link to="/Member">Member</Link>
         </li>
         <li>
-          <a href="/Issuebooks">Issue Books</a>
+          <Link to="/Issuebooks">Issue Books</Link>
         </li>
       </ul>
     </nav>

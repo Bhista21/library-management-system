@@ -1,40 +1,25 @@
-import React, { Component } from "react";
+import React from "react";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Nav from "./nav";
 import Books from "./Books";
 import Member from "./Member";
 import Home from "./Home";
 import Issuebook from "./Issue-book";
-
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faMagnifyingGlass } from "@fortawesome/free-solid-svg-icons";
+import Register from "./Register";
 import "./Css/App.css";
 
 function App() {
-  let component;
-  console.log(window.location.pathname);
-  switch (window.location.pathname) {
-    case "/Home":
-      component = <Home />;
-      break;
-    case "/Books":
-      component = <Books />;
-      break;
-
-    case "/Member":
-      component = <Member />;
-      break;
-    case "/Issuebooks":
-      component = <Issuebook />;
-      break;
-    default:
-      component = <Home />;
-      break;
-  }
   return (
-    <>
+    <BrowserRouter>
       <Nav />
-      <div className="container">{component}</div>
-    </>
+      <Routes>
+        <Route path="/Home" element={<Home />} />
+        <Route path="/Books" element={<Books />} />
+        <Route path="/Member" element={<Member />} />
+        <Route path="/Issuebooks" element={<Issuebook />} />
+        <Route path="/Register" element={<Register />} />
+      </Routes>
+    </BrowserRouter>
   );
 }
 

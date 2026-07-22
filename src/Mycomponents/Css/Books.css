@@ -1,24 +1,18 @@
-body {
-  background-color: white;
-  color: rgb(248, 245, 245);
+.book-container {
+  padding-top: 50px;
 }
-
-.navbar {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  background: #0d6efd;
-  padding: 18px 50px;
-  margin-bottom: 150px;
-}
-.container {
-  width: 600px;
-  max-width: auto;
+.Books {
+  width: 750px;
+  max-width: 90%;
   margin: 0 auto;
-  padding: 30px;
-  background: white;
-  border-radius: 20px;
-  border: 1px solid black;
+  padding: 40px 30px;
+  background: rgba(211, 209, 209, 0.45);
+
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 25px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  justify-content: center;
+  text-align: center;
 }
 
 table {
@@ -29,7 +23,7 @@ table {
 
 td,
 th {
-  border: 1px solid #dddddd;
+  border: 1px solid #525151;
   text-align: left;
   padding: 8px;
 }
