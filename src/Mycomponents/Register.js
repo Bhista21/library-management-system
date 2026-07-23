@@ -105,5 +105,155 @@ function Register() {
     </div>
   );
 }
+const form = document.getElementById("RegistrationForm");
+const successPopup = document.getElementById("successpopup");
+const popupMessage = document.getElementById("popupMessage");
+
+// Profile Picture
+const browseBtn = document.getElementById("browseBtn");
+const profilePicInput = document.getElementById("profilepic");
+const fileNameSpan = document.getElementById("FileName");
+const imagePreview = document.getElementById("imagePreview");
+
+browseBtn.addEventListener("click", () => profilePicInput.click());
+
+profilePicInput.addEventListener("change", function () {
+  if (this.files[0]) {
+    fileNameSpan.textContent = this.files[0].name;
+
+    const reader = new FileReader();
+
+    reader.onload = function (e) {
+      imagePreview.innerHTML = `<img src="${e.target.result}" width="120" style="border-radius:8px; border:2px solid #666;">`;
+    };
+
+    reader.readAsDataURL(this.files[0]);
+  }
+});
+
+// Reset Button
+document.getElementById("resetBtn").addEventListener("click", function (e) {
+  e.preventDefault();
+
+  form.reset();
+  fileNameSpan.textContent = "No files selected.";
+  imagePreview.innerHTML = "";
+  clearAllErrors();
+  successPopup.style.display = "none";
+});
+
+// Clear Errors
+function clearAllErrors() {
+  document.querySelectorAll(".error").forEach((el) => {
+    el.textContent = "";
+  });
+}
+
+// Email Validation
+function isValidEmail(email) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+}
+
+// Form Submit
+form.addEventListener("submit", function (e) {
+  e.preventDefault();
+
+  clearAllErrors();
+
+  let isValid = true;
+
+  // First Name
+  const firstName = document.getElementById("firstName").value.trim();
+
+  if (firstName === "") {
+    document.getElementById("firstNameError").textContent =
+      "First name is required";
+    isValid = false;
+  }
+
+  // Last Name
+  const lastName = document.getElementById("lastName").value.trim();
+
+  if (lastName === "") {
+    document.getElementById("lastNameError").textContent =
+      "Last name is required";
+    isValid = false;
+  }
+
+  // Age
+  const age = document.getElementById("age").value;
+
+  if (age === "" || age < 1 || age > 120) {
+    document.getElementById("ageError").textContent =
+      "Please enter a valid age (1-120)";
+    isValid = false;
+  }
+
+  // Email
+  const email = document.getElementById("email").value.trim();
+
+  if (email === "" || !isValidEmail(email)) {
+    document.getElementById("emailError").textContent =
+      "Please enter a valid email";
+    isValid = false;
+  }
+
+  // Password
+  const password = document.getElementById("password").value;
+
+  if (password.length < 6) {
+    document.getElementById("PasswordError").textContent =
+      "Password must be at least 6 characters";
+    isValid = false;
+  }
+
+  // Role
+  let role = "";
+
+  if (document.getElementById("roleAdmin").checked) {
+    role = "Admin";
+  } else if (document.getElementById("roleUser").checked) {
+    role = "User";
+  } else {
+    alert("Please select a role.");
+    isValid = false;
+  }
+
+  // Terms
+  if (!document.getElementById("terms").checked) {
+    alert("You must accept the terms and policy.");
+    isValid = false;
+  }
+
+  if (!isValid) return;
+
+  // Save to Local Storage
+  const users = JSON.parse(localStorage.getItem("users")) || [];
+
+  const newUser = {
+    id: Date.now(),
+    firstName: firstName,
+    lastName: lastName,
+    age: Number(age),
+    gender: document.getElementById("gender").value,
+    email: email,
+    role: role,
+    registeredDate: new Date().toLocaleDateString(),
+  };
+
+  users.push(newUser);
+
+  localStorage.setItem("users", JSON.stringify(users));
+
+  // Success Popup
+  popupMessage.textContent = `Welcome ${firstName}! You are now registered as ${role}.`;
+
+  successPopup.style.display = "block";
+});
+
+// Close Popup
+window.closepopup = function () {
+  successPopup.style.display = "none";
+};
 
 export default Register;

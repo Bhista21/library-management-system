@@ -1,11 +1,8 @@
 .Home-container {
-  min-height: 100vh;
   background-image: url("/Pics/bg.jpg");
-  background-size: cover;
   background-position: center;
-  background-repeat: no-repeat;
   background-attachment: fixed;
-
+  min-height: 100vh;
   display: flex;
   justify-content: center;
   align-items: center;
