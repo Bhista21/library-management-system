@@ -1,10 +1,181 @@
-import React from "react";
+import React, { useState, useRef } from "react";
 import "./Css/Register.css";
 
 function Register() {
+  // Form State
+  const [formData, setFormData] = useState({
+    firstName: "",
+    lastName: "",
+    age: "",
+    gender: "Male",
+    email: "",
+    password: "",
+    confirmPassword: "",
+    role: "",
+    terms: false,
+  });
+
+  // Profile Picture State
+  const [fileName, setFileName] = useState("No files selected.");
+  const [previewUrl, setPreviewUrl] = useState("");
+
+  // Errors & Popup State
+  const [errors, setErrors] = useState({});
+  const [showPopup, setShowPopup] = useState(false);
+  const [popupMessage, setPopupMessage] = useState("");
+
+  const fileInputRef = useRef(null);
+
+  // Handle Input Changes
+  const handleChange = (e) => {
+    const { id, name, value, type, checked } = e.target;
+    const key = name || id;
+
+    setFormData((prev) => ({
+      ...prev,
+      [key]: type === "checkbox" ? checked : value,
+    }));
+
+    // Clear field-specific error as user types
+    if (errors[key]) {
+      setErrors((prev) => ({ ...prev, [key]: "" }));
+    }
+  };
+
+  // Profile Picture File Upload Handler
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setFileName(file.name);
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        setPreviewUrl(ev.target.result);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  // Reset Form
+  const handleReset = (e) => {
+    if (e) e.preventDefault();
+    setFormData({
+      firstName: "",
+      lastName: "",
+      age: "",
+      gender: "Male",
+      email: "",
+      password: "",
+      confirmPassword: "",
+      role: "",
+      terms: false,
+    });
+    setFileName("No files selected.");
+    setPreviewUrl("");
+    setErrors({});
+    setShowPopup(false);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
+  };
+
+  // Email Validation Regex
+  const isValidEmail = (email) => {
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  };
+
+  // Integrated Form Validation
+  const validateForm = () => {
+    const newErrors = {};
+
+    if (!formData.firstName.trim()) {
+      newErrors.firstName = "First name is required";
+    }
+
+    if (!formData.lastName.trim()) {
+      newErrors.lastName = "Last name is required";
+    }
+
+    if (!formData.age || formData.age < 1 || formData.age > 120) {
+      newErrors.age = "Please enter a valid age (1-120)";
+    }
+
+    if (!formData.email.trim() || !isValidEmail(formData.email.trim())) {
+      newErrors.email = "Please enter a valid email";
+    }
+
+    if (formData.password.length < 6) {
+      newErrors.password = "Password must be at least 6 characters";
+    }
+
+    if (formData.password !== formData.confirmPassword) {
+      newErrors.confirmPassword = "Passwords do not match.";
+    }
+
+    if (!formData.role) {
+      newErrors.role = "Please select a role.";
+    }
+
+    if (!formData.terms) {
+      newErrors.terms = "You must accept the terms and policy.";
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  // Submit Logic
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    if (!validateForm()) return;
+
+    const newUser = {
+      firstName: formData.firstName.trim(),
+      lastName: formData.lastName.trim(),
+      age: Number(formData.age),
+      gender: formData.gender,
+      email: formData.email.trim(),
+      password: formData.password,
+      role: formData.role,
+    };
+
+    try {
+      const res = await fetch("/api/signup", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(newUser),
+      });
+
+      const data = await res.json();
+
+      if (data.success) {
+        setPopupMessage(
+          data.message ||
+            `Welcome ${formData.firstName}! You are now registered as ${formData.role}.`,
+        );
+        setShowPopup(true);
+
+        setTimeout(() => {
+          window.location.href = "/login";
+        }, 1500);
+      } else {
+        alert(data.message || "Registration failed.");
+      }
+    } catch (err) {
+      alert("Could not reach the server. Is it running?");
+      console.error(err);
+    }
+  };
+
   return (
     <div className="register-container">
-      <form className="register-form">
+      <form
+        className="register-form"
+        id="RegistrationForm"
+        onSubmit={handleSubmit}
+      >
         <h1 className="register-title">User Registration</h1>
 
         <h2 className="register-subtitle">Personal Details</h2>
@@ -12,25 +183,46 @@ function Register() {
         <div className="register-group">
           <div>
             <label htmlFor="firstName">First Name:</label>
-            <input type="text" id="firstName" />
-            <span className="register-error" id="firstNameError"></span>
+            <input
+              type="text"
+              id="firstName"
+              value={formData.firstName}
+              onChange={handleChange}
+            />
+            {errors.firstName && (
+              <span className="register-error">{errors.firstName}</span>
+            )}
           </div>
 
           <div>
             <label htmlFor="lastName">Last Name:</label>
-            <input type="text" id="lastName" />
-            <span className="register-error" id="lastNameError"></span>
+            <input
+              type="text"
+              id="lastName"
+              value={formData.lastName}
+              onChange={handleChange}
+            />
+            {errors.lastName && (
+              <span className="register-error">{errors.lastName}</span>
+            )}
           </div>
 
           <div>
             <label htmlFor="age">Age:</label>
-            <input type="number" id="age" min="1" max="120" />
-            <span className="register-error" id="ageError"></span>
+            <input
+              type="number"
+              id="age"
+              min="1"
+              max="120"
+              value={formData.age}
+              onChange={handleChange}
+            />
+            {errors.age && <span className="register-error">{errors.age}</span>}
           </div>
 
           <div>
             <label htmlFor="gender">Gender:</label>
-            <select id="gender">
+            <select id="gender" value={formData.gender} onChange={handleChange}>
               <option value="Male">Male</option>
               <option value="Female">Female</option>
               <option value="Other">Other</option>
@@ -39,8 +231,11 @@ function Register() {
 
           <div>
             <label>Profile Picture:</label>
-
-            <button type="button" id="browseBtn">
+            <button
+              type="button"
+              id="browseBtn"
+              onClick={() => fileInputRef.current.click()}
+            >
               Browse...
             </button>
 
@@ -48,212 +243,128 @@ function Register() {
               type="file"
               id="profilepic"
               accept="image/*"
+              ref={fileInputRef}
+              onChange={handleFileChange}
               style={{ display: "none" }}
             />
 
-            <span id="FileName">No files selected.</span>
+            <span id="FileName">{fileName}</span>
 
-            <div id="imagePreview" style={{ marginTop: "10px" }}></div>
+            <div id="imagePreview" style={{ marginTop: "10px" }}>
+              {previewUrl && (
+                <img
+                  src={previewUrl}
+                  alt="Preview"
+                  width="120"
+                  style={{ borderRadius: "8px", border: "2px solid #666" }}
+                />
+              )}
+            </div>
           </div>
 
           <h2 className="register-subtitle">Account Details</h2>
 
           <div>
             <label htmlFor="email">Email:</label>
-            <input type="email" id="email" />
-            <span className="register-error" id="emailError"></span>
+            <input
+              type="email"
+              id="email"
+              value={formData.email}
+              onChange={handleChange}
+            />
+            {errors.email && (
+              <span className="register-error">{errors.email}</span>
+            )}
           </div>
 
           <div>
             <label htmlFor="password">Password:</label>
-            <input type="password" id="password" />
-            <span className="register-error" id="PasswordError"></span>
+            <input
+              type="password"
+              id="password"
+              value={formData.password}
+              onChange={handleChange}
+            />
+            {errors.password && (
+              <span className="register-error">{errors.password}</span>
+            )}
+          </div>
+
+          <div>
+            <label htmlFor="confirmPassword">Confirm Password:</label>
+            <input
+              type="password"
+              id="confirmPassword"
+              value={formData.confirmPassword}
+              onChange={handleChange}
+            />
+            {errors.confirmPassword && (
+              <span className="register-error">{errors.confirmPassword}</span>
+            )}
           </div>
 
           <div className="register-radio-group">
             <label>Role:</label>
 
-            <input type="radio" id="roleAdmin" name="role" />
+            <input
+              type="radio"
+              id="roleAdmin"
+              name="role"
+              value="Admin"
+              checked={formData.role === "Admin"}
+              onChange={handleChange}
+            />
             <label htmlFor="roleAdmin">Admin</label>
 
-            <input type="radio" id="roleUser" name="role" />
+            <input
+              type="radio"
+              id="roleUser"
+              name="role"
+              value="User"
+              checked={formData.role === "User"}
+              onChange={handleChange}
+            />
             <label htmlFor="roleUser">User</label>
           </div>
+          {errors.role && <span className="register-error">{errors.role}</span>}
 
           <div className="register-checkbox-group">
-            <input type="checkbox" id="terms" />
+            <input
+              type="checkbox"
+              id="terms"
+              checked={formData.terms}
+              onChange={handleChange}
+            />
             <label htmlFor="terms">I accept all the terms and policy.</label>
           </div>
+          {errors.terms && (
+            <span className="register-error">{errors.terms}</span>
+          )}
 
           <div className="register-button-group">
             <button type="submit">Register</button>
 
-            <button type="reset" id="resetBtn">
+            <button type="button" id="resetBtn" onClick={handleReset}>
               Reset
             </button>
           </div>
 
-          <div id="successpopup" className="register-success-popup">
+          <div
+            id="successpopup"
+            className="register-success-popup"
+            style={{ display: showPopup ? "block" : "none" }}
+          >
             <h3>Registration Successful</h3>
+            <p id="popupMessage">{popupMessage}</p>
 
-            <p id="popupMessage"></p>
-
-            <button type="button">OK</button>
+            <button type="button" onClick={() => setShowPopup(false)}>
+              OK
+            </button>
           </div>
         </div>
       </form>
     </div>
   );
 }
-const form = document.getElementById("RegistrationForm");
-const successPopup = document.getElementById("successpopup");
-const popupMessage = document.getElementById("popupMessage");
-
-// Profile Picture
-const browseBtn = document.getElementById("browseBtn");
-const profilePicInput = document.getElementById("profilepic");
-const fileNameSpan = document.getElementById("FileName");
-const imagePreview = document.getElementById("imagePreview");
-
-browseBtn.addEventListener("click", () => profilePicInput.click());
-
-profilePicInput.addEventListener("change", function () {
-  if (this.files[0]) {
-    fileNameSpan.textContent = this.files[0].name;
-
-    const reader = new FileReader();
-
-    reader.onload = function (e) {
-      imagePreview.innerHTML = `<img src="${e.target.result}" width="120" style="border-radius:8px; border:2px solid #666;">`;
-    };
-
-    reader.readAsDataURL(this.files[0]);
-  }
-});
-
-// Reset Button
-document.getElementById("resetBtn").addEventListener("click", function (e) {
-  e.preventDefault();
-
-  form.reset();
-  fileNameSpan.textContent = "No files selected.";
-  imagePreview.innerHTML = "";
-  clearAllErrors();
-  successPopup.style.display = "none";
-});
-
-// Clear Errors
-function clearAllErrors() {
-  document.querySelectorAll(".error").forEach((el) => {
-    el.textContent = "";
-  });
-}
-
-// Email Validation
-function isValidEmail(email) {
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-}
-
-// Form Submit
-form.addEventListener("submit", function (e) {
-  e.preventDefault();
-
-  clearAllErrors();
-
-  let isValid = true;
-
-  // First Name
-  const firstName = document.getElementById("firstName").value.trim();
-
-  if (firstName === "") {
-    document.getElementById("firstNameError").textContent =
-      "First name is required";
-    isValid = false;
-  }
-
-  // Last Name
-  const lastName = document.getElementById("lastName").value.trim();
-
-  if (lastName === "") {
-    document.getElementById("lastNameError").textContent =
-      "Last name is required";
-    isValid = false;
-  }
-
-  // Age
-  const age = document.getElementById("age").value;
-
-  if (age === "" || age < 1 || age > 120) {
-    document.getElementById("ageError").textContent =
-      "Please enter a valid age (1-120)";
-    isValid = false;
-  }
-
-  // Email
-  const email = document.getElementById("email").value.trim();
-
-  if (email === "" || !isValidEmail(email)) {
-    document.getElementById("emailError").textContent =
-      "Please enter a valid email";
-    isValid = false;
-  }
-
-  // Password
-  const password = document.getElementById("password").value;
-
-  if (password.length < 6) {
-    document.getElementById("PasswordError").textContent =
-      "Password must be at least 6 characters";
-    isValid = false;
-  }
-
-  // Role
-  let role = "";
-
-  if (document.getElementById("roleAdmin").checked) {
-    role = "Admin";
-  } else if (document.getElementById("roleUser").checked) {
-    role = "User";
-  } else {
-    alert("Please select a role.");
-    isValid = false;
-  }
-
-  // Terms
-  if (!document.getElementById("terms").checked) {
-    alert("You must accept the terms and policy.");
-    isValid = false;
-  }
-
-  if (!isValid) return;
-
-  // Save to Local Storage
-  const users = JSON.parse(localStorage.getItem("users")) || [];
-
-  const newUser = {
-    id: Date.now(),
-    firstName: firstName,
-    lastName: lastName,
-    age: Number(age),
-    gender: document.getElementById("gender").value,
-    email: email,
-    role: role,
-    registeredDate: new Date().toLocaleDateString(),
-  };
-
-  users.push(newUser);
-
-  localStorage.setItem("users", JSON.stringify(users));
-
-  // Success Popup
-  popupMessage.textContent = `Welcome ${firstName}! You are now registered as ${role}.`;
-
-  successPopup.style.display = "block";
-});
-
-// Close Popup
-window.closepopup = function () {
-  successPopup.style.display = "none";
-};
 
 export default Register;

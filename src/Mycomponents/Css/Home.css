@@ -1,5 +1,5 @@
 .Home-container {
-  background-image: url("/Pics/bg.jpg");
+  background-image: url("../../Pics/bg.jpg");
   background-position: center;
   background-attachment: fixed;
   min-height: 100vh;
