@@ -68,7 +68,7 @@ select {
   border-radius: 8px;
 }
 
-.error {
+.login-error {
   color: rgb(255, 0, 0);
   font-size: 0.8 em;
   margin-top: 4px;

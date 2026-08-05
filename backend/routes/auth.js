@@ -9,13 +9,10 @@ const router = express.Router();
 
 // POST /api/signup
 router.post("/signup", async (req, res) => {
-  const { name, firstName, lastName, age, gender, email, password, role } =
+  const { username, firstName, lastName, age, gender, email, password, role } =
     req.body;
 
-  const userFullName =
-    name || [firstName, lastName].filter(Boolean).join(" ").trim();
-
-  if (!userFullName || !email || !password) {
+  if (!username || !email || !password) {
     return res.status(400).json({
       success: false,
       message: "All required fields must be provided.",
@@ -35,10 +32,10 @@ router.post("/signup", async (req, res) => {
     const finalRole = role === "Admin" ? "Admin" : "User";
 
     const result = await run(
-      `INSERT INTO users (name, first_name, last_name, age, gender, email, password, role)
+      `INSERT INTO users (username, first_name, last_name, age, gender, email, password, role)
        VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
       [
-        userFullName,
+        username,
         firstName || null,
         lastName || null,
         age ? Number(age) : null,
@@ -51,7 +48,7 @@ router.post("/signup", async (req, res) => {
 
     return res.json({
       success: true,
-      message: `Account created successfully! Welcome ${firstName || userFullName}!`,
+      message: `Account created successfully! Welcome ${firstName || username}!`,
       userId: result.lastInsertRowid,
     });
   } catch (err) {

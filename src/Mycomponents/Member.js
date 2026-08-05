@@ -1,11 +1,68 @@
-import React from "react";
+import React, { useState } from "react";
 import "./Css/Member.css";
 import { Link } from "react-router-dom";
 function Member() {
+  const [errors, setErrors] = useState({});
+  const [showPopup, setShowPopup] = useState(false);
+  const [popupMessage, setPopupMessage] = useState("");
+  const [formData, setFormData] = useState({
+    Username: "",
+    role: "",
+    password: "",
+  });
+  const validateForm = () => {
+    const newErrors = {};
+
+    if (!formData.password.trim()) {
+      newErrors.login = "Please enter username or password";
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    if (!validateForm()) return;
+
+    const newUser = {
+      Username: formData.Username.trim(),
+      password: formData.password,
+    };
+
+    try {
+      const res = await fetch("/api/signup", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(newUser),
+      });
+
+      const data = await res.json();
+
+      if (data.success) {
+        setPopupMessage(
+          data.message ||
+            `Welcome ${formData.Username}! You are now registered as ${formData.role}.`,
+        );
+        setShowPopup(true);
+
+        setTimeout(() => {
+          window.location.href = "/login";
+        }, 1500);
+      } else {
+        alert(data.message || "Registration failed.");
+      }
+    } catch (err) {
+      alert("Could not reach the server. Is it running?");
+      console.error(err);
+    }
+  };
   return (
     <div className="member-container">
       <div className="member">
-        <form id="RegistrationForm">
+        <form id="RegistrationForm" onSubmit={handleSubmit}>
           <div className="radio-group">
             <label>Role:</label>
             <input type="radio" id="roleAdmin" name="role" />
@@ -23,10 +80,7 @@ function Member() {
             <label htmlFor="password">Password</label>
             <input type="password" id="password" placeholder="Password" />
           </div>
-
-          <span className="error" id="loginError">
-            Username or password is not correct
-          </span>
+          {errors.login && <span className="login-error">{errors.login}</span>}
 
           <div className="Submit-button">
             <button type="submit" id="Submit">
