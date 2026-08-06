@@ -6,7 +6,7 @@ function Member() {
   const [showPopup, setShowPopup] = useState(false);
   const [popupMessage, setPopupMessage] = useState("");
   const [formData, setFormData] = useState({
-    Username: "",
+    email: "",
     role: "",
     password: "",
   });
@@ -26,7 +26,7 @@ function Member() {
     if (!validateForm()) return;
 
     const newUser = {
-      Username: formData.Username.trim(),
+      email: formData.email.trim(),
       password: formData.password,
     };
 
@@ -71,9 +71,9 @@ function Member() {
             <label htmlFor="roleMember">Member</label>
           </div>
 
-          <div className="username">
-            <label htmlFor="Username">Username</label>
-            <input type="text" id="Username" placeholder="Username" />
+          <div className="Email">
+            <label htmlFor="Email">Email</label>
+            <input type="text" id="Email" placeholder="Email" />
           </div>
 
           <div className="password">

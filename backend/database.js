@@ -38,7 +38,7 @@ function ensureSchema() {
       await db.execute(`
         CREATE TABLE IF NOT EXISTS users (
           id INTEGER PRIMARY KEY AUTOINCREMENT,
-          username TEXT,
+           TEXT,
           first_name TEXT,
           last_name TEXT,
           age INTEGER,
@@ -75,7 +75,7 @@ function ensureSchema() {
           return_date DATETIME,
           status TEXT NOT NULL DEFAULT 'issued',
           FOREIGN KEY (book_id) REFERENCES books(id),
-          FOREIGN KEY (username_id) REFERENCES users(id)
+          FOREIGN KEY (user_id) REFERENCES users(id)
         );
       `);
 

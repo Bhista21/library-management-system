@@ -118,9 +118,6 @@ function Register() {
     if (!formData.terms) {
       newErrors.terms = "You must accept the terms and policy.";
     }
-    if (!formData.username) {
-      newErrors.username = "Username is required";
-    }
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -135,7 +132,6 @@ function Register() {
     const newUser = {
       firstName: formData.firstName.trim(),
       lastName: formData.lastName.trim(),
-      username: formData.username.trim(),
       age: Number(formData.age),
       gender: formData.gender,
       email: formData.email.trim(),
@@ -210,18 +206,7 @@ function Register() {
               <span className="register-error">{errors.lastName}</span>
             )}
           </div>
-          <div>
-            <label htmlFor="username">Username:</label>
-            <input
-              type="text"
-              id="username"
-              value={formData.username}
-              onChange={handleChange}
-            />
-            {errors.username && (
-              <span className="register-error">{errors.username}</span>
-            )}
-          </div>
+
           <div>
             <label htmlFor="age">Age:</label>
             <input
