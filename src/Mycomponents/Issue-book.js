@@ -7,6 +7,7 @@ function Issuebook() {
     Author: "",
     Stock: "",
     Genre: "",
+    ISBN: "",
   });
 
   const [fileName, setFileName] = useState("No files selected.");
@@ -15,72 +16,83 @@ function Issuebook() {
   const [errors, setErrors] = useState({});
   const [showPopup, setShowPopup] = useState(false);
   const [popupMessage, setPopupMessage] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  // Handle text/number inputs
+  // Handle inputs
   const handleChange = (e) => {
     const { name, value } = e.target;
 
-    setFormData({
-      ...formData,
+    setFormData((prev) => ({
+      ...prev,
       [name]: value,
-    });
+    }));
 
-    // Remove error while user is typing
     if (errors[name]) {
-      setErrors({
-        ...errors,
-        [name]: "",
-      });
-    }
-  };
-
-  // Handle file selection
-  const handleFileChange = (e) => {
-    const file = e.target.files[0];
-
-    if (file) {
-      setFileName(file.name);
-
-      const reader = new FileReader();
-
-      reader.onload = (ev) => {
-        setPreviewUrl(ev.target.result);
-      };
-
-      reader.readAsDataURL(file);
-
-      // Remove cover error
       setErrors((prev) => ({
         ...prev,
-        cover: "",
+        [name]: "",
       }));
     }
   };
 
-  // Validate entire form
+  // Handle image
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+
+    if (!file) return;
+
+    if (!file.type.startsWith("image/")) {
+      setErrors((prev) => ({
+        ...prev,
+        cover: "Please select an image file.",
+      }));
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      setErrors((prev) => ({
+        ...prev,
+        cover: "Image must be smaller than 5 MB.",
+      }));
+      return;
+    }
+
+    setFileName(file.name);
+
+    const reader = new FileReader();
+
+    reader.onload = (event) => {
+      setPreviewUrl(event.target.result);
+    };
+
+    reader.readAsDataURL(file);
+
+    setErrors((prev) => ({
+      ...prev,
+      cover: "",
+    }));
+  };
+
+  // Validation
   const validateForm = () => {
     const newErrors = {};
 
-    // Title
     if (!formData.Title.trim()) {
       newErrors.Title = "Book title is required.";
     } else if (formData.Title.trim().length < 2) {
       newErrors.Title = "Book title must be at least 2 characters.";
     }
 
-    // Author
     if (!formData.Author.trim()) {
       newErrors.Author = "Author name is required.";
     } else if (formData.Author.trim().length < 2) {
       newErrors.Author = "Author name must be at least 2 characters.";
     }
 
-    // Genre
     if (!formData.Genre.trim()) {
       newErrors.Genre = "Genre is required.";
     }
 
-    // Stock
     if (!formData.Stock) {
       newErrors.Stock = "Stock quantity is required.";
     } else if (Number(formData.Stock) < 1) {
@@ -89,9 +101,11 @@ function Issuebook() {
       newErrors.Stock = "Stock cannot be more than 120.";
     }
 
-    // Book cover
     if (!previewUrl) {
       newErrors.cover = "Please select a book cover.";
+    }
+    if (!formData.desc) {
+      newErrors.cover = "please enter desception";
     }
 
     setErrors(newErrors);
@@ -99,7 +113,7 @@ function Issuebook() {
     return Object.keys(newErrors).length === 0;
   };
 
-  // Submit form
+  // Submit
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -107,174 +121,273 @@ function Issuebook() {
       return;
     }
 
-    const newBook = {
-      Title: formData.Title.trim(),
-      Author: formData.Author.trim(),
-      Stock: Number(formData.Stock),
-      Genre: formData.Genre.trim(),
-    };
+    const token = localStorage.getItem("token");
 
-    console.log("Book submitted:", newBook);
+    if (!token) {
+      setErrors({
+        server: "You must be logged in as an admin.",
+      });
+      return;
+    }
 
-    // Success popup
-    setPopupMessage(
-      `"${newBook.Title}" has been successfully added to the library.`,
-    );
+    setLoading(true);
 
-    setShowPopup(true);
+    try {
+      const newBook = {
+        title: formData.Title.trim(),
+        author: formData.Author.trim(),
+        genre: formData.Genre.trim(),
+        isbn: formData.ISBN.trim() || null,
+        stock: Number(formData.Stock),
+        description: formData.Description,
+        cover_image: previewUrl,
+      };
+
+      console.log("Sending book:", newBook);
+
+      const res = await fetch("http://localhost:5000/api/books", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(newBook),
+      });
+
+      const data = await res.json();
+
+      console.log("Server response:", data);
+
+      if (!res.ok || !data.success) {
+        throw new Error(data.message || "Could not add the book.");
+      }
+
+      // Success
+      setPopupMessage(
+        `"${newBook.title}" has been successfully added to the library.`,
+      );
+
+      setShowPopup(true);
+
+      // Clear form
+      setFormData({
+        Title: "",
+        Author: "",
+        Stock: "",
+        Genre: "",
+        ISBN: "",
+        Description: "",
+      });
+
+      setFileName("No files selected.");
+      setPreviewUrl("");
+      setErrors({});
+
+      const fileInput = document.getElementById("bookCover");
+
+      if (fileInput) {
+        fileInput.value = "";
+      }
+    } catch (err) {
+      console.error("Add book error:", err);
+
+      setErrors({
+        server: err.message || "Could not reach the server.",
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
-  // Close popup
   const closePopup = () => {
     setShowPopup(false);
   };
 
   return (
     <div className="issuebook-container">
-      <form id="issueBookForm" onSubmit={handleSubmit} noValidate>
-        <h1 className="issuebook-title">Issue Books</h1>
+      <h1 className="issuebook-title">Issue Books</h1>
 
+      <form id="issueBookForm" onSubmit={handleSubmit}>
         <h2 className="issuebook-subtitle">Book Details</h2>
 
+        {/* TITLE */}
+
         <div className="issuebook-group">
-          {/* TITLE */}
-          <div>
-            <label htmlFor="bookTitle">Title:</label>
+          <label htmlFor="bookTitle">Title:</label>
 
-            <input
-              type="text"
-              id="bookTitle"
-              name="Title"
-              value={formData.Title}
-              onChange={handleChange}
-              className={errors.Title ? "input-error" : ""}
-              placeholder="Enter book title"
-            />
+          <input
+            type="text"
+            id="bookTitle"
+            name="Title"
+            value={formData.Title}
+            onChange={handleChange}
+            placeholder="Enter book title"
+          />
 
-            {errors.Title && (
-              <span className="issuebook-error">{errors.Title}</span>
-            )}
-          </div>
+          {errors.Title && (
+            <span className="issuebook-error">{errors.Title}</span>
+          )}
+        </div>
 
-          {/* AUTHOR */}
-          <div>
-            <label htmlFor="bookAuthor">Author:</label>
+        {/* AUTHOR */}
 
-            <input
-              type="text"
-              id="bookAuthor"
-              name="Author"
-              value={formData.Author}
-              onChange={handleChange}
-              className={errors.Author ? "input-error" : ""}
-              placeholder="Enter author name"
-            />
+        <div className="issuebook-group">
+          <label htmlFor="bookAuthor">Author:</label>
 
-            {errors.Author && (
-              <span className="issuebook-error">{errors.Author}</span>
-            )}
-          </div>
+          <input
+            type="text"
+            id="bookAuthor"
+            name="Author"
+            value={formData.Author}
+            onChange={handleChange}
+            placeholder="Enter author name"
+          />
 
-          {/* GENRE */}
-          <div>
-            <label htmlFor="bookGenre">Genre:</label>
+          {errors.Author && (
+            <span className="issuebook-error">{errors.Author}</span>
+          )}
+        </div>
 
-            <input
-              type="text"
-              id="bookGenre"
-              name="Genre"
-              value={formData.Genre}
-              onChange={handleChange}
-              className={errors.Genre ? "input-error" : ""}
-              placeholder="Enter book genre"
-            />
+        {/* GENRE */}
 
-            {errors.Genre && (
-              <span className="issuebook-error">{errors.Genre}</span>
-            )}
-          </div>
+        <div className="issuebook-group">
+          <label htmlFor="bookGenre">Genre:</label>
 
-          {/* STOCK */}
-          <div>
-            <label htmlFor="bookStock">Stock:</label>
+          <input
+            type="text"
+            id="bookGenre"
+            name="Genre"
+            value={formData.Genre}
+            onChange={handleChange}
+            placeholder="Enter book genre"
+          />
 
-            <input
-              type="number"
-              id="bookStock"
-              name="Stock"
-              min="1"
-              max="120"
-              value={formData.Stock}
-              onChange={handleChange}
-              className={errors.Stock ? "input-error" : ""}
-              placeholder="Enter stock"
-            />
+          {errors.Genre && (
+            <span className="issuebook-error">{errors.Genre}</span>
+          )}
+        </div>
 
-            {errors.Stock && (
-              <span className="issuebook-error">{errors.Stock}</span>
-            )}
-          </div>
+        {/* ISBN */}
 
-          {/* BOOK COVER */}
-          <div>
-            <label>Book Cover:</label>
+        <div className="issuebook-group">
+          <label htmlFor="bookISBN">Issue date:</label>
 
-            <button
-              type="button"
-              id="bookBrowseBtn"
-              onClick={() => document.getElementById("bookCover").click()}
-            >
-              Browse...
-            </button>
+          <input
+            type="text"
+            id="bookISBN"
+            name="ISBN"
+            value={formData.ISBN}
+            onChange={handleChange}
+            placeholder="Enter ISBN (optional)"
+          />
+        </div>
+        <div className="issuebook-group">
+          <label htmlFor="bookdesc">Description:</label>
 
-            <input
-              type="file"
-              id="bookCover"
-              accept="image/*"
-              style={{ display: "none" }}
-              onChange={handleFileChange}
-            />
+          <input
+            type="text"
+            id="bookdesc"
+            name="desc"
+            value={formData.desc}
+            onChange={handleChange}
+            placeholder="Enter Desception"
+          />
 
-            <span
-              id="bookFileName"
-              className={errors.cover ? "file-error" : ""}
-            >
-              {fileName}
-            </span>
+          {errors.desc && (
+            <span className="issuebook-error">{errors.desc}</span>
+          )}
+        </div>
+        {/* STOCK */}
 
-            {errors.cover && (
-              <span className="issuebook-error">{errors.cover}</span>
-            )}
+        <div className="issuebook-group">
+          <label htmlFor="bookStock">Stock:</label>
 
-            {/* IMAGE PREVIEW */}
-            {previewUrl && (
-              <div id="bookImagePreview" style={{ marginTop: "10px" }}>
-                <img
-                  src={previewUrl}
-                  alt="Book cover preview"
-                  style={{
-                    width: "120px",
-                    height: "160px",
-                    objectFit: "cover",
-                    borderRadius: "5px",
-                  }}
-                />
-              </div>
-            )}
-          </div>
+          <input
+            type="number"
+            id="bookStock"
+            name="Stock"
+            min="1"
+            max="120"
+            value={formData.Stock}
+            onChange={handleChange}
+            placeholder="Enter stock"
+          />
 
-          {/* SUBMIT BUTTON */}
-          <div className="Submit-button">
-            <button type="submit" id="Submit">
-              Submit
-            </button>
-          </div>
+          {errors.Stock && (
+            <span className="issuebook-error">{errors.Stock}</span>
+          )}
+        </div>
+
+        {/* BOOK COVER */}
+
+        <div className="issuebook-group">
+          <label>Book Cover:</label>
+
+          <button
+            type="button"
+            id="bookBrowseBtn"
+            onClick={() => document.getElementById("bookCover").click()}
+          >
+            Browse...
+          </button>
+
+          <input
+            type="file"
+            id="bookCover"
+            accept="image/*"
+            style={{ display: "none" }}
+            onChange={handleFileChange}
+          />
+
+          <span id="bookFileName" className={errors.cover ? "file-error" : ""}>
+            {fileName}
+          </span>
+
+          {errors.cover && (
+            <span className="issuebook-error">{errors.cover}</span>
+          )}
+
+          {/* PREVIEW */}
+
+          {previewUrl && (
+            <div id="bookImagePreview" style={{ marginTop: "10px" }}>
+              <img
+                src={previewUrl}
+                alt="Book cover preview"
+                style={{
+                  width: "120px",
+                  height: "160px",
+                  objectFit: "cover",
+                  borderRadius: "5px",
+                }}
+              />
+            </div>
+          )}
+        </div>
+
+        {/* SERVER ERROR */}
+
+        {errors.server && (
+          <span className="issuebook-error">{errors.server}</span>
+        )}
+
+        {/* SUBMIT */}
+
+        <div className="Submit-button">
+          <button type="submit" id="Submit" disabled={loading}>
+            {loading ? "Adding..." : "Submit"}
+          </button>
         </div>
       </form>
 
       {/* SUCCESS POPUP */}
+
       {showPopup && (
-        <div id="issueBookSuccessPopup" className="issuebook-success-popup">
+        <div
+          id="issueBookSuccessPopup"
+          className="issuebook-success-popup"
+          style={{ display: "block" }}
+        >
           <h3>Registration Successful</h3>
 
           <p>{popupMessage}</p>

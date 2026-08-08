@@ -38,7 +38,6 @@ function ensureSchema() {
       await db.execute(`
         CREATE TABLE IF NOT EXISTS users (
           id INTEGER PRIMARY KEY AUTOINCREMENT,
-           TEXT,
           first_name TEXT,
           last_name TEXT,
           age INTEGER,
@@ -59,6 +58,7 @@ function ensureSchema() {
           isbn TEXT,
           stock INTEGER NOT NULL DEFAULT 0,
           cover_image TEXT,
+          Description TEXt,
           created_by INTEGER,
           created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
           FOREIGN KEY (created_by) REFERENCES users(id)

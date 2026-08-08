@@ -46,7 +46,7 @@ router.post("/signup", async (req, res) => {
 
     return res.json({
       success: true,
-      message: `Account created successfully! Welcome ${firstName | lastName}!`,
+      message: `Account created successfully! Welcome ${firstName + " " + lastName}!`,
       userId: result.lastInsertRowid,
     });
   } catch (err) {
@@ -88,7 +88,8 @@ router.post("/login", async (req, res) => {
       { expiresIn: "8h" },
     );
 
-    const displayName = user.first_name || user.name || "User";
+    const displayName =
+      `${user.first_name || ""} ${user.last_name || ""}`.trim() || "User";
 
     return res.json({
       success: true,
@@ -96,7 +97,7 @@ router.post("/login", async (req, res) => {
       token,
       user: {
         id: user.id,
-        name: user.name,
+        name: displayName,
         email: user.email,
         role: user.role,
       },

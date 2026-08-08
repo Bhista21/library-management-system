@@ -6,38 +6,65 @@ const router = express.Router();
 
 // POST /api/borrow — issue a book to a user (Admin only)
 // body: { bookId, userId, dueDate }
-router.post("/", authenticateToken, requireAdmin, async (req, res) => {
-  const { bookId, userId, dueDate } = req.body;
+router.post("/", authenticateToken, async (req, res) => {
+  const { bookId, dueDate } = req.body;
 
-  if (!bookId || !userId) {
-    return res
-      .status(400)
-      .json({ success: false, message: "bookId and userId are required." });
+  if (!bookId) {
+    return res.status(400).json({
+      success: false,
+      message: "bookId is required.",
+    });
   }
 
+  const userId = req.user.id;
+
   const tx = await db.transaction("write");
+
   try {
     const bookResult = await tx.execute({
       sql: "SELECT * FROM books WHERE id = ?",
       args: [bookId],
     });
+
     const book = bookResult.rows[0];
+
     if (!book) {
       await tx.rollback();
-      return res.status(404).json({ success: false, message: "Book not found." });
-    }
-    if (book.stock < 1) {
-      await tx.rollback();
-      return res.status(400).json({ success: false, message: "No copies available." });
+
+      return res.status(404).json({
+        success: false,
+        message: "Book not found.",
+      });
     }
 
-    const userResult = await tx.execute({
-      sql: "SELECT id FROM users WHERE id = ?",
-      args: [userId],
-    });
-    if (!userResult.rows[0]) {
+    if (book.stock < 1) {
       await tx.rollback();
-      return res.status(404).json({ success: false, message: "User not found." });
+
+      return res.status(400).json({
+        success: false,
+        message: "No copies available.",
+      });
+    }
+
+    // Prevent user from borrowing the same book twice
+    const existingResult = await tx.execute({
+      sql: `
+        SELECT id
+        FROM borrow_records
+        WHERE book_id = ?
+        AND user_id = ?
+        AND status = 'issued'
+      `,
+      args: [bookId, userId],
+    });
+
+    if (existingResult.rows.length > 0) {
+      await tx.rollback();
+
+      return res.status(400).json({
+        success: false,
+        message: "You already have this book.",
+      });
     }
 
     await tx.execute({
@@ -46,8 +73,11 @@ router.post("/", authenticateToken, requireAdmin, async (req, res) => {
     });
 
     const insertResult = await tx.execute({
-      sql: `INSERT INTO borrow_records (book_id, user_id, due_date, status)
-            VALUES (?, ?, ?, 'issued')`,
+      sql: `
+        INSERT INTO borrow_records
+        (book_id, user_id, due_date, status)
+        VALUES (?, ?, ?, 'issued')
+      `,
       args: [bookId, userId, dueDate || null],
     });
 
@@ -55,15 +85,20 @@ router.post("/", authenticateToken, requireAdmin, async (req, res) => {
 
     return res.json({
       success: true,
-      message: "Book issued.",
+      message: "Book borrowed successfully.",
       recordId: Number(insertResult.lastInsertRowid),
     });
   } catch (err) {
-    console.error("Issue book error:", err);
+    console.error("Borrow book error:", err);
+
     try {
       await tx.rollback();
     } catch (_) {}
-    return res.status(500).json({ success: false, message: "Could not issue book." });
+
+    return res.status(500).json({
+      success: false,
+      message: "Could not borrow book.",
+    });
   }
 });
 
@@ -80,14 +115,17 @@ router.put("/:id/return", authenticateToken, async (req, res) => {
     const record = recResult.rows[0];
     if (!record) {
       await tx.rollback();
-      return res.status(404).json({ success: false, message: "Borrow record not found." });
+      return res
+        .status(404)
+        .json({ success: false, message: "Borrow record not found." });
     }
 
     if (req.user.role !== "Admin" && record.user_id !== req.user.id) {
       await tx.rollback();
-      return res
-        .status(403)
-        .json({ success: false, message: "You can only return your own books." });
+      return res.status(403).json({
+        success: false,
+        message: "You can only return your own books.",
+      });
     }
     if (record.status === "returned") {
       await tx.rollback();
@@ -113,7 +151,9 @@ router.put("/:id/return", authenticateToken, async (req, res) => {
     try {
       await tx.rollback();
     } catch (_) {}
-    return res.status(500).json({ success: false, message: "Could not return book." });
+    return res
+      .status(500)
+      .json({ success: false, message: "Could not return book." });
   }
 });
 
@@ -122,13 +162,16 @@ router.get("/", authenticateToken, async (req, res) => {
   try {
     let records;
     if (req.user.role === "Admin") {
-      records = await all(
-        `SELECT br.*, b.title AS book_title, u.name AS user_name
-         FROM borrow_records br
-         JOIN books b ON b.id = br.book_id
-         JOIN users u ON u.id = br.user_id
-         ORDER BY br.issue_date DESC`,
-      );
+      records = await all(`
+  SELECT
+    br.*,
+    b.title AS book_title,
+    TRIM(u.first_name || ' ' || u.last_name) AS user_name
+  FROM borrow_records br
+  JOIN books b ON b.id = br.book_id
+  JOIN users u ON u.id = br.user_id
+  ORDER BY br.issue_date DESC
+`);
     } else {
       records = await all(
         `SELECT br.*, b.title AS book_title

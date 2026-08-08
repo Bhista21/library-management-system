@@ -59,7 +59,7 @@ h4 {
 .borrow-btn {
   margin-top: 20px;
   padding: 12px 25px;
-  background: #4caf50;
+  background: #0d6efd;
   color: white;
   border: none;
   border-radius: 8px;
@@ -69,5 +69,5 @@ h4 {
 }
 
 .borrow-btn:hover {
-  background: #388e3c;
+  background: #0d6efd;
 }

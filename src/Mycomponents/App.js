@@ -9,7 +9,8 @@ import Home from "./Home";
 import Issuebook from "./Issue-book";
 import Register from "./Register";
 import Bookdeatils from "./Bookdetail";
-
+import AdminDashboard from "./Admindashboard";
+import UserDashboard from "./Userdashboard";
 import "./Css/App.css";
 
 function App() {
@@ -27,7 +28,10 @@ function App() {
             <Route path="/Member" element={<Member />} />
             <Route path="/Issuebooks" element={<Issuebook />} />
             <Route path="/Register" element={<Register />} />
-            <Route path="/Book-detail" element={<Bookdeatils />} />
+            <Route path="/Book/:id" element={<Bookdeatils />} />
+            <Route path="/admin/dashboard" element={<AdminDashboard />} />
+
+            <Route path="/dashboard" element={<UserDashboard />} />
           </Routes>
         </main>
 
