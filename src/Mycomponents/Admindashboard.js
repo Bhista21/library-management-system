@@ -18,7 +18,7 @@ function AdminDashboard() {
       const token = localStorage.getItem("token");
 
       if (!token) {
-        navigate("/login");
+        navigate("/Member");
         return;
       }
 
@@ -78,8 +78,6 @@ function AdminDashboard() {
 
       <div className="admin-stats">
         <div className="admin-stat-card">
-          <div className="admin-stat-icon">📚</div>
-
           <div>
             <span>Total Books</span>
             <h2>{stats.totalBooks}</h2>
@@ -88,8 +86,6 @@ function AdminDashboard() {
         </div>
 
         <div className="admin-stat-card">
-          <div className="admin-stat-icon">👥</div>
-
           <div>
             <span>Total Members</span>
             <h2>{stats.totalMembers}</h2>
@@ -98,8 +94,6 @@ function AdminDashboard() {
         </div>
 
         <div className="admin-stat-card">
-          <div className="admin-stat-icon">📖</div>
-
           <div>
             <span>Books Issued</span>
             <h2>{stats.issuedBooks}</h2>
@@ -108,8 +102,6 @@ function AdminDashboard() {
         </div>
 
         <div className="admin-stat-card warning-card">
-          <div className="admin-stat-icon">⚠️</div>
-
           <div>
             <span>Overdue</span>
             <h2>{stats.overdueBooks}</h2>
@@ -125,22 +117,18 @@ function AdminDashboard() {
 
         <div className="admin-actions">
           <button onClick={() => navigate("/books")}>
-            📚
             <span>Manage Books</span>
           </button>
 
           <button onClick={() => navigate("/member")}>
-            👥
             <span>Manage Members</span>
           </button>
 
-          <button onClick={() => navigate("/issuebooks")}>
-            📖
+          <button onClick={() => navigate("/issuebook")}>
             <span>Issue Book</span>
           </button>
 
           <button onClick={() => navigate("/books")}>
-            🔄
             <span>Return Book</span>
           </button>
         </div>

@@ -18,7 +18,7 @@ function UserDashboard() {
       const token = localStorage.getItem("token");
 
       if (!token) {
-        navigate("/login");
+        navigate("/Member");
         return;
       }
 
@@ -66,7 +66,7 @@ function UserDashboard() {
     <div className="user-dashboard">
       <div className="user-welcome">
         <div>
-          <h1>Welcome back, {firstName} 👋</h1>
+          <h1>Welcome back, {firstName} </h1>
 
           <p>Here's what's happening with your library account.</p>
         </div>
@@ -80,7 +80,7 @@ function UserDashboard() {
 
       <div className="user-stats">
         <div className="user-stat-card">
-          <span>📖</span>
+   
 
           <div>
             <small>Currently Borrowed</small>
@@ -89,7 +89,7 @@ function UserDashboard() {
         </div>
 
         <div className="user-stat-card">
-          <span>⚠️</span>
+          
 
           <div>
             <small>Overdue</small>
@@ -98,7 +98,7 @@ function UserDashboard() {
         </div>
 
         <div className="user-stat-card">
-          <span>📚</span>
+          
 
           <div>
             <small>Total Borrowed</small>
@@ -107,8 +107,7 @@ function UserDashboard() {
         </div>
 
         <div className="user-stat-card">
-          <span>📗</span>
-
+          
           <div>
             <small>Available Books</small>
             <h2>{stats.availableBooks}</h2>
@@ -134,8 +133,7 @@ function UserDashboard() {
         ) : (
           data.myBooks.map((book) => (
             <div className="user-book" key={book.id}>
-              <div className="user-book-cover">📖</div>
-
+              
               <div className="user-book-info">
                 <h3>{book.title}</h3>
 
@@ -166,7 +164,7 @@ function UserDashboard() {
         <div className="recommended-books">
           {data.recentBooks.map((book) => (
             <div className="recommended-book" key={book.id}>
-              <div className="book-cover">📚</div>
+         
 
               <h3>{book.title}</h3>
 
