@@ -20,7 +20,7 @@
     },
     {
       "src": "/(.*)",
-      "dest": "src/Mycomponents/index.js"
+      "dest": "/index.html"
     }
   ]
 }

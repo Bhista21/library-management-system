@@ -104,8 +104,8 @@ function Issuebook() {
     if (!previewUrl) {
       newErrors.cover = "Please select a book cover.";
     }
-    if (!formData.desc) {
-      newErrors.cover = "please enter desception";
+    if (!formData.Description) {
+      newErrors.Description = "please enter desception";
     }
 
     setErrors(newErrors);
@@ -288,13 +288,13 @@ function Issuebook() {
             type="text"
             id="bookdesc"
             name="desc"
-            value={formData.desc}
+            value={formData.Description}
             onChange={handleChange}
             placeholder="Enter Desception"
           />
 
-          {errors.desc && (
-            <span className="issuebook-error">{errors.desc}</span>
+          {errors.Description && (
+            <span className="issuebook-error">{errors.Description}</span>
           )}
         </div>
         {/* STOCK */}
