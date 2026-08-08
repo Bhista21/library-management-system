@@ -69,5 +69,21 @@ h4 {
 }
 
 .borrow-btn:hover {
+  background: #9f9fa0;
+}
+
+.return-btn {
+  margin-top: 20px;
+  padding: 12px 25px;
   background: #0d6efd;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 17px;
+  transition: 0.3s;
+}
+
+.return-btn:hover {
+  background: #9f9fa0;
 }

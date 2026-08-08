@@ -55,3 +55,19 @@ th {
   align-items: center;
   gap: 8px;
 }
+.low-stock {
+  background-color: #ffcccc;
+  color: #b30000;
+  font-weight: bold;
+}
+
+.low-stock td {
+  color: #b30000;
+}
+
+.low-stock-alert {
+  color: #d00000;
+  font-size: 12px;
+  font-weight: bold;
+  margin-left: 5px;
+}

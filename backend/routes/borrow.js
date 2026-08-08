@@ -4,8 +4,10 @@ const { authenticateToken, requireAdmin } = require("../middleware/auth");
 
 const router = express.Router();
 
-// POST /api/borrow — issue a book to a user (Admin only)
-// body: { bookId, userId, dueDate }
+/*
+  POST /api/borrow
+  Admin issues a book to a user
+*/
 router.post("/", authenticateToken, async (req, res) => {
   const { bookId, dueDate } = req.body;
 
@@ -21,6 +23,10 @@ router.post("/", authenticateToken, async (req, res) => {
   const tx = await db.transaction("write");
 
   try {
+    // ============================
+    // FIND BOOK
+    // ============================
+
     const bookResult = await tx.execute({
       sql: "SELECT * FROM books WHERE id = ?",
       args: [bookId],
@@ -37,7 +43,11 @@ router.post("/", authenticateToken, async (req, res) => {
       });
     }
 
-    if (book.stock < 1) {
+    // ============================
+    // CHECK STOCK
+    // ============================
+
+    if (Number(book.stock) <= 0) {
       await tx.rollback();
 
       return res.status(400).json({
@@ -46,14 +56,18 @@ router.post("/", authenticateToken, async (req, res) => {
       });
     }
 
-    // Prevent user from borrowing the same book twice
+    // ============================
+    // CHECK IF USER ALREADY
+    // HAS THIS BOOK
+    // ============================
+
     const existingResult = await tx.execute({
       sql: `
         SELECT id
         FROM borrow_records
         WHERE book_id = ?
-        AND user_id = ?
-        AND status = 'issued'
+          AND user_id = ?
+          AND status = 'issued'
       `,
       args: [bookId, userId],
     });
@@ -67,15 +81,32 @@ router.post("/", authenticateToken, async (req, res) => {
       });
     }
 
+    // ============================
+    // REDUCE STOCK
+    // ============================
+
     await tx.execute({
-      sql: "UPDATE books SET stock = stock - 1 WHERE id = ?",
+      sql: `
+        UPDATE books
+        SET stock = stock - 1
+        WHERE id = ?
+      `,
       args: [bookId],
     });
 
-    const insertResult = await tx.execute({
+    // ============================
+    // CREATE BORROW RECORD
+    // ============================
+
+    const result = await tx.execute({
       sql: `
         INSERT INTO borrow_records
-        (book_id, user_id, due_date, status)
+        (
+          book_id,
+          user_id,
+          due_date,
+          status
+        )
         VALUES (?, ?, ?, 'issued')
       `,
       args: [bookId, userId, dueDate || null],
@@ -86,14 +117,19 @@ router.post("/", authenticateToken, async (req, res) => {
     return res.json({
       success: true,
       message: "Book borrowed successfully.",
-      recordId: Number(insertResult.lastInsertRowid),
+      recordId: Number(result.lastInsertRowid),
+
+      stockBefore: Number(book.stock),
+      stockAfter: Number(book.stock) - 1,
     });
   } catch (err) {
-    console.error("Borrow book error:", err);
+    console.error("Borrow error:", err);
 
     try {
       await tx.rollback();
-    } catch (_) {}
+    } catch (rollbackError) {
+      console.error("Rollback error:", rollbackError);
+    }
 
     return res.status(500).json({
       success: false,
@@ -102,92 +138,182 @@ router.post("/", authenticateToken, async (req, res) => {
   }
 });
 
-// PUT /api/borrow/:id/return
+/*
+  PUT /api/borrow/:id/return
+
+  User:
+    Can return their own book.
+
+  Admin:
+    Can return any book.
+*/
 router.put("/:id/return", authenticateToken, async (req, res) => {
-  const { id } = req.params;
+  const recordId = req.params.id;
 
   const tx = await db.transaction("write");
+
   try {
-    const recResult = await tx.execute({
-      sql: "SELECT * FROM borrow_records WHERE id = ?",
-      args: [id],
+    const recordResult = await tx.execute({
+      sql: `
+        SELECT
+          br.*,
+          b.title AS book_title,
+          b.stock AS current_stock
+        FROM borrow_records br
+        JOIN books b
+          ON b.id = br.book_id
+        WHERE br.id = ?
+      `,
+      args: [recordId],
     });
-    const record = recResult.rows[0];
+
+    const record = recordResult.rows[0];
+
     if (!record) {
       await tx.rollback();
-      return res
-        .status(404)
-        .json({ success: false, message: "Borrow record not found." });
+
+      return res.status(404).json({
+        success: false,
+        message: "Borrow record not found.",
+      });
     }
 
-    if (req.user.role !== "Admin" && record.user_id !== req.user.id) {
+    // User can only return their own book
+    // Admin can return any book.
+    if (
+      req.user.role !== "Admin" &&
+      Number(record.user_id) !== Number(req.user.id)
+    ) {
       await tx.rollback();
+
       return res.status(403).json({
         success: false,
         message: "You can only return your own books.",
       });
     }
+
+    // Prevent double return
     if (record.status === "returned") {
       await tx.rollback();
-      return res
-        .status(400)
-        .json({ success: false, message: "This book was already returned." });
+
+      return res.status(400).json({
+        success: false,
+        message: "This book has already been returned.",
+      });
     }
 
+    if (record.status !== "issued") {
+      await tx.rollback();
+
+      return res.status(400).json({
+        success: false,
+        message: "This borrow record cannot be returned.",
+      });
+    }
+
+    const stockBefore = Number(record.current_stock);
+
+    // Mark returned
     await tx.execute({
-      sql: `UPDATE borrow_records SET status = 'returned', return_date = CURRENT_TIMESTAMP WHERE id = ?`,
-      args: [id],
+      sql: `
+        UPDATE borrow_records
+        SET
+          status = 'returned',
+          return_date = CURRENT_TIMESTAMP
+        WHERE id = ?
+      `,
+      args: [recordId],
     });
+
+    // Return exactly ONE copy
     await tx.execute({
-      sql: "UPDATE books SET stock = stock + 1 WHERE id = ?",
+      sql: `
+        UPDATE books
+        SET stock = stock + 1
+        WHERE id = ?
+      `,
       args: [record.book_id],
     });
 
     await tx.commit();
 
-    return res.json({ success: true, message: "Book returned." });
+    return res.json({
+      success: true,
+      message: `"${record.book_title}" returned successfully.`,
+      stockBefore,
+      stockAfter: stockBefore + 1,
+    });
   } catch (err) {
     console.error("Return book error:", err);
+
     try {
       await tx.rollback();
-    } catch (_) {}
-    return res
-      .status(500)
-      .json({ success: false, message: "Could not return book." });
+    } catch (rollbackError) {}
+
+    return res.status(500).json({
+      success: false,
+      message: "Could not return book.",
+    });
   }
 });
 
-// GET /api/borrow — Admin sees all records, regular users see only their own
+/*
+  GET /api/borrow
+
+  Admin:
+    Gets every borrow record.
+
+  User:
+    Gets only their own borrow records.
+*/
 router.get("/", authenticateToken, async (req, res) => {
   try {
     let records;
+
     if (req.user.role === "Admin") {
       records = await all(`
-  SELECT
-    br.*,
-    b.title AS book_title,
-    TRIM(u.first_name || ' ' || u.last_name) AS user_name
-  FROM borrow_records br
-  JOIN books b ON b.id = br.book_id
-  JOIN users u ON u.id = br.user_id
-  ORDER BY br.issue_date DESC
-`);
+        SELECT
+          br.*,
+          b.title AS book_title,
+          b.author AS book_author,
+          u.first_name AS first_name,
+          u.last_name AS last_name,
+          u.email AS user_email
+        FROM borrow_records br
+        JOIN books b
+          ON b.id = br.book_id
+        JOIN users u
+          ON u.id = br.user_id
+        ORDER BY br.issue_date DESC
+      `);
     } else {
       records = await all(
-        `SELECT br.*, b.title AS book_title
-         FROM borrow_records br
-         JOIN books b ON b.id = br.book_id
-         WHERE br.user_id = ?
-         ORDER BY br.issue_date DESC`,
+        `
+        SELECT
+          br.*,
+          b.title AS book_title,
+          b.author AS book_author
+        FROM borrow_records br
+        JOIN books b
+          ON b.id = br.book_id
+        WHERE br.user_id = ?
+        ORDER BY br.issue_date DESC
+        `,
         [req.user.id],
       );
     }
-    return res.json({ success: true, records });
+
+    return res.json({
+      success: true,
+      records,
+    });
   } catch (err) {
     console.error("Fetch borrow records error:", err);
-    return res
-      .status(500)
-      .json({ success: false, message: "Could not fetch borrow records." });
+
+    return res.status(500).json({
+      success: false,
+      message: "Could not fetch borrow records.",
+    });
   }
 });
 

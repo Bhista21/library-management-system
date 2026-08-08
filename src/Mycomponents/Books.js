@@ -127,15 +127,17 @@ function Books() {
                 {books.map((book) => (
                   <tr
                     key={book.id}
-                    onClick={() => {
-                      window.location.href = `/book/${book.id}`;
-                    }}
-                    style={{ cursor: "pointer" }}
+                    className={Number(book.stock) < 5 ? "low-stock" : ""}
                   >
                     <td>{book.title}</td>
-                    <td>{book.genre || "N/A"}</td>
-                    <td>{book.author || "N/A"}</td>
-                    <td>{book.stock}</td>
+                    <td>{book.genre}</td>
+                    <td>{book.author}</td>
+                    <td>
+                      {book.stock}
+                      {Number(book.stock) < 5 && (
+                        <span className="low-stock-alert"> Low Stock!</span>
+                      )}
+                    </td>
                   </tr>
                 ))}
               </tbody>

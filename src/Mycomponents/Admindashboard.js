@@ -100,14 +100,6 @@ function AdminDashboard() {
             <small>Currently borrowed</small>
           </div>
         </div>
-
-        <div className="admin-stat-card warning-card">
-          <div>
-            <span>Overdue</span>
-            <h2>{stats.overdueBooks}</h2>
-            <small>Need attention</small>
-          </div>
-        </div>
       </div>
 
       {/* QUICK ACTIONS */}

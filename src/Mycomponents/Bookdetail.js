@@ -6,52 +6,98 @@ function BookDetails() {
   const { id } = useParams();
 
   const [book, setBook] = useState(null);
+  const [borrowRecord, setBorrowRecord] = useState(null);
+
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+
   const [borrowing, setBorrowing] = useState(false);
+  const [returning, setReturning] = useState(false);
 
-  // =========================
-  // FETCH BOOK
-  // =========================
-  useEffect(() => {
-    const fetchBook = async () => {
-      try {
-        const token = localStorage.getItem("token");
+  // =====================================================
+  // LOAD BOOK + USER'S BORROW RECORD
+  // =====================================================
 
-        if (!token) {
-          setError("Please log in to view book details.");
-          setLoading(false);
-          return;
-        }
+  const loadBook = async () => {
+    const token = localStorage.getItem("token");
 
-        const res = await fetch(`/api/books/${id}`, {
-          method: "GET",
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
+    if (!token) {
+      setError("Please log in to view book details.");
+      setLoading(false);
+      return;
+    }
 
-        const data = await res.json();
+    try {
+      setLoading(true);
+      setError("");
 
-        if (!res.ok || !data.success) {
-          throw new Error(data.message || "Could not fetch book.");
-        }
+      // -------------------------
+      // Get book
+      // -------------------------
 
-        setBook(data.book);
-      } catch (err) {
-        console.error("Book details error:", err);
-        setError(err.message || "Could not load book.");
-      } finally {
-        setLoading(false);
+      const bookResponse = await fetch(`/api/books/${id}`, {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      const bookData = await bookResponse.json();
+
+      if (!bookResponse.ok || !bookData.success) {
+        throw new Error(bookData.message || "Could not fetch book.");
       }
-    };
 
-    fetchBook();
+      setBook(bookData.book);
+
+      // -------------------------
+      // Get borrow records
+      // -------------------------
+
+      const borrowResponse = await fetch("/api/borrow", {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      const borrowData = await borrowResponse.json();
+
+      if (!borrowResponse.ok || !borrowData.success) {
+        throw new Error(
+          borrowData.message || "Could not fetch borrow records.",
+        );
+      }
+
+      // Find an ACTIVE borrow record
+      // belonging to this book.
+
+      const activeRecord = borrowData.records.find(
+        (record) =>
+          Number(record.book_id) === Number(id) && record.status === "issued",
+      );
+
+      setBorrowRecord(activeRecord || null);
+    } catch (err) {
+      console.error("Book details error:", err);
+      setError(err.message || "Could not load book.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // =====================================================
+  // LOAD WHEN PAGE OPENS
+  // =====================================================
+
+  useEffect(() => {
+    loadBook();
   }, [id]);
 
-  // =========================
+  // =====================================================
   // BORROW BOOK
-  // =========================
+  // =====================================================
+
   const handleBorrow = async () => {
     if (!book) return;
 
@@ -62,15 +108,21 @@ function BookDetails() {
       return;
     }
 
-    if (book.stock <= 0) {
+    if (Number(book.stock) <= 0) {
       alert("This book is currently out of stock.");
+      return;
+    }
+
+    // Don't allow borrowing if already borrowed
+    if (borrowRecord) {
+      alert("You already have this book.");
       return;
     }
 
     setBorrowing(true);
 
     try {
-      const res = await fetch("/api/borrow", {
+      const response = await fetch("/api/borrow", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -81,20 +133,17 @@ function BookDetails() {
         }),
       });
 
-      const data = await res.json();
+      const data = await response.json();
 
-      if (!res.ok || !data.success) {
+      if (!response.ok || !data.success) {
         alert(data.message || "Could not borrow book.");
         return;
       }
 
-      // Reduce stock immediately on the page
-      setBook((previousBook) => ({
-        ...previousBook,
-        stock: previousBook.stock - 1,
-      }));
-
       alert("Book borrowed successfully!");
+
+      // Reload book + borrow record
+      await loadBook();
     } catch (err) {
       console.error("Borrow error:", err);
       alert("Could not reach the server.");
@@ -103,20 +152,71 @@ function BookDetails() {
     }
   };
 
-  // =========================
+  // =====================================================
+  // RETURN BOOK
+  // =====================================================
+
+  const handleReturn = async () => {
+    if (!borrowRecord) {
+      alert("You have not borrowed this book.");
+      return;
+    }
+
+    const token = localStorage.getItem("token");
+
+    if (!token) {
+      alert("You are not logged in.");
+      return;
+    }
+
+    setReturning(true);
+
+    try {
+      const response = await fetch(`/api/borrow/${borrowRecord.id}/return`, {
+        method: "PUT",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      });
+
+      const data = await response.json();
+
+      if (!response.ok || !data.success) {
+        alert(data.message || "Could not return book.");
+        return;
+      }
+
+      alert(`${data.message}\nStock: ${data.stockBefore} → ${data.stockAfter}`);
+
+      // Reload book and borrow status
+      await loadBook();
+    } catch (err) {
+      console.error("Return error:", err);
+      alert("Could not reach the server.");
+    } finally {
+      setReturning(false);
+    }
+  };
+
+  // =====================================================
   // LOADING
-  // =========================
+  // =====================================================
+
   if (loading) {
     return (
       <div className="bookdetail">
-        <h2>Loading book...</h2>
+        <div className="info">
+          <h2>Loading book...</h2>
+        </div>
       </div>
     );
   }
 
-  // =========================
+  // =====================================================
   // ERROR
-  // =========================
+  // =====================================================
+
   if (error) {
     return (
       <div className="bookdetail">
@@ -128,9 +228,10 @@ function BookDetails() {
     );
   }
 
-  // =========================
+  // =====================================================
   // BOOK NOT FOUND
-  // =========================
+  // =====================================================
+
   if (!book) {
     return (
       <div className="bookdetail">
@@ -141,21 +242,50 @@ function BookDetails() {
     );
   }
 
-  // =========================
-  // BOOK DETAILS
-  // =========================
+  // =====================================================
+  // DESCRIPTION
+  // =====================================================
+
+  // Your database column is "Description".
+  // Depending on the SQLite result, it may come back
+  // as Description rather than description.
+
+  const description =
+    book.description || book.Description || "No description available.";
+
+  // =====================================================
+  // COVER IMAGE
+  // =====================================================
+
+  let coverImage = book.cover_image;
+
+  /*
+    If your database contains a data URL:
+      data:image/jpeg;base64,...
+
+    it can be displayed directly.
+
+    If there is no image, show "No Image".
+  */
+
+  // =====================================================
+  // PAGE
+  // =====================================================
+
   return (
     <div className="bookdetail">
-      {/* BOOK COVER */}
+      {/* ================= COVER ================= */}
+
       <div className="cover-pic">
-        {book.cover_image ? (
-          <img src={book.cover_image} alt={book.title} />
+        {coverImage ? (
+          <img src={coverImage} alt={`${book.title} cover`} />
         ) : (
           <div className="no-cover">No Image</div>
         )}
       </div>
 
-      {/* BOOK INFORMATION */}
+      {/* ================= BOOK INFO ================= */}
+
       <div className="info">
         <h1>{book.title}</h1>
 
@@ -171,7 +301,7 @@ function BookDetails() {
 
         <div className="book-meta">
           <h3>Description:</h3>
-          <p>{book.description || "No description available."}</p>
+          <p>{description}</p>
         </div>
 
         <div className="book-meta">
@@ -186,18 +316,39 @@ function BookDetails() {
           </div>
         )}
 
-        {/* BORROW BUTTON */}
-        <button
-          className="borrow-btn"
-          onClick={handleBorrow}
-          disabled={book.stock <= 0 || borrowing}
-        >
-          {borrowing
-            ? "Borrowing..."
-            : book.stock > 0
-              ? "Borrow Book"
-              : "Out of Stock"}
-        </button>
+        {/* ================= BORROW ================= */}
+
+        {!borrowRecord && (
+          <button
+            type="button"
+            className="borrow-btn"
+            onClick={handleBorrow}
+            disabled={Number(book.stock) <= 0 || borrowing}
+          >
+            {borrowing
+              ? "Borrowing..."
+              : Number(book.stock) > 0
+                ? "Borrow Book"
+                : "Out of Stock"}
+          </button>
+        )}
+
+        {/* ================= RETURN ================= */}
+
+        {borrowRecord && (
+          <div className="return-section">
+            <p className="borrow-status">You currently have this book.</p>
+
+            <button
+              type="button"
+              className="return-btn"
+              onClick={handleReturn}
+              disabled={returning}
+            >
+              {returning ? "Returning..." : "Return Book"}
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );
