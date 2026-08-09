@@ -1,4 +1,5 @@
 import React, { useState, useRef } from "react";
+import { useNavigate } from "react-router-dom";
 import "./Css/Register.css";
 
 function Register() {
@@ -18,7 +19,7 @@ function Register() {
   // Profile Picture State
   const [fileName, setFileName] = useState("No files selected.");
   const [previewUrl, setPreviewUrl] = useState("");
-
+  const navigate = useNavigate();
   // Errors & Popup State
   const [errors, setErrors] = useState({});
   const [showPopup, setShowPopup] = useState(false);
@@ -158,7 +159,7 @@ function Register() {
         setShowPopup(true);
 
         setTimeout(() => {
-          window.location.href = "/Member";
+          navigate("/Member");
         }, 1500);
       } else {
         alert(data.message || "Registration failed.");

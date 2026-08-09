@@ -1,9 +1,12 @@
 import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import "./Css/Books.css";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faMagnifyingGlass } from "@fortawesome/free-solid-svg-icons";
 
 function Books() {
+  const navigate = useNavigate();
+
   const [books, setBooks] = useState([]);
   const [search, setSearch] = useState("");
   const [sortBy, setSortBy] = useState("Title");
@@ -128,7 +131,7 @@ function Books() {
                   <tr
                     key={book.id}
                     onClick={() => {
-                      window.location.href = `/book/${book.id}`;
+                      navigate(`/book/${book.id}`);
                     }}
                     style={{ cursor: "pointer" }}
                     className={Number(book.stock) < 5 ? "low-stock" : ""}
