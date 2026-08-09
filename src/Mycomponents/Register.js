@@ -158,7 +158,7 @@ function Register() {
         setShowPopup(true);
 
         setTimeout(() => {
-          window.location.href = "/login";
+          window.location.href = "/Member";
         }, 1500);
       } else {
         alert(data.message || "Registration failed.");
