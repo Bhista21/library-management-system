@@ -13,3 +13,9 @@
 .main-content {
   flex: 1;
 }
+
+/* Responsive additions — desktop styles above remain unchanged */
+html, body, #root { width: 100%; min-height: 100%; }
+@media (max-width: 600px) {
+  .main-content { width: 100%; overflow-x: hidden; }
+}

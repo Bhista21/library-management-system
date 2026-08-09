@@ -87,3 +87,28 @@ h4 {
 .return-btn:hover {
   background: #9f9fa0;
 }
+
+/* Responsive additions — desktop styles above remain unchanged */
+@media (max-width: 800px) {
+  .bookdetail { width: 90%; gap: 25px; padding: 25px; }
+  .cover-pic img { width: 230px; height: 345px; }
+  .info h1 { font-size: 1.7rem; }
+  .book-meta p, h4 { font-size: 16px; }
+}
+@media (max-width: 600px) {
+  .bookdetail {
+    width: calc(100% - 30px);
+    margin: 25px auto;
+    padding: 20px;
+    flex-direction: column;
+    gap: 25px;
+  }
+  .cover-pic img {
+    width: min(220px, 75vw);
+    height: auto;
+    aspect-ratio: 2 / 3;
+  }
+  .info h1 { font-size: 1.5rem; }
+  .book-meta p, h4 { font-size: 15px; line-height: 1.6; }
+  .borrow-btn, .return-btn { width: 100%; }
+}

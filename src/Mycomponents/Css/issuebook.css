@@ -133,3 +133,31 @@
   justify-content: center;
   margin-top: 20px;
 }
+
+/* Responsive additions — desktop styles above remain unchanged */
+@media (max-width: 650px) {
+  .issuebook-container {
+    width: calc(100% - 30px);
+    max-width: none;
+    padding: 20px 15px;
+    margin-top: 20px;
+  }
+  #issueBookForm {
+    max-width: 100%;
+    margin: 25px auto;
+    padding: 10px 5px;
+  }
+  .issuebook-radio-group { flex-wrap: wrap; gap: 12px; }
+  .issuebook-button-group { flex-direction: column; }
+  .issuebook-button-group button, #issueBookSubmitBtn, #Submit { width: 100%; }
+  .issuebook-success-popup {
+    width: calc(100% - 30px);
+    max-width: 300px;
+    padding: 22px;
+  }
+}
+@media (max-width: 400px) {
+  .issuebook-container { width: calc(100% - 20px); padding: 18px 12px; }
+  .issuebook-title { font-size: 24px; }
+  .issuebook-subtitle { font-size: 14px; }
+}

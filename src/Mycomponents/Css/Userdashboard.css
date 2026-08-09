@@ -268,3 +268,28 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* Responsive additions — desktop styles above remain unchanged */
+@media (max-width: 900px) {
+  .user-dashboard { padding: 24px; }
+  .user-stats { grid-template-columns: repeat(2, 1fr); }
+  .user-content { grid-template-columns: 1fr; }
+  .book-cards { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 600px) {
+  .user-dashboard { padding: 15px; }
+  .user-welcome {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 15px;
+  }
+  .user-welcome h1 { font-size: 24px; }
+  .browse-btn { width: 100%; }
+  .user-stats { grid-template-columns: 1fr; gap: 15px; }
+  .user-stat-card { padding: 18px; }
+  .user-panel { padding: 18px; }
+  .user-panel-header { gap: 10px; flex-wrap: wrap; }
+  .borrowed-book { gap: 12px; }
+  .due-item { gap: 9px; }
+  .book-cards { grid-template-columns: 1fr; }
+}

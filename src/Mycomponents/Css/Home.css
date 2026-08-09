@@ -58,3 +58,43 @@
 .search-box button:hover {
   background: #084298;
 }
+
+/* Responsive additions — desktop styles above remain unchanged */
+@media (max-width: 700px) {
+  .Home-container {
+    padding: 25px 15px;
+    background-attachment: scroll;
+  }
+  .hero {
+    width: 100%;
+    max-width: 100%;
+    padding: 30px 20px;
+  }
+  .hero h1 {
+    font-size: clamp(30px, 8vw, 45px);
+  }
+  .hero p {
+    font-size: 16px;
+  }
+  .search-box {
+    width: 100%;
+  }
+  .search-box input {
+    width: 100%;
+    max-width: 100%;
+  }
+  .search-box button {
+    margin-left: 0;
+    margin-top: 10px;
+    width: 100%;
+  }
+}
+@media (max-width: 400px) {
+  .hero {
+    padding: 25px 15px;
+    border-radius: 18px;
+  }
+  .hero p {
+    font-size: 15px;
+  }
+}

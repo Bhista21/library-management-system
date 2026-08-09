@@ -70,3 +70,13 @@
     align-items: center;
   }
 }
+
+/* Responsive additions — desktop styles above remain unchanged */
+@media (max-width: 600px) {
+  .footer-container { padding: 30px 18px; gap: 25px; }
+  .footer-section h2 { font-size: 20px; }
+  .footer-section h3 { font-size: 17px; }
+  .footer-section p, .footer-section a { font-size: 14px; }
+  .footer-bottom { padding: 12px; }
+  .footer-bottom p { font-size: 12px; }
+}

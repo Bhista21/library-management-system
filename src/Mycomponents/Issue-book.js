@@ -107,7 +107,9 @@ function Issuebook() {
     if (!formData.Description) {
       newErrors.Description = "please enter desception";
     }
-
+    if (!formData.ISBN) {
+      newErrors.ISBN = "please enter ISBN number";
+    }
     setErrors(newErrors);
 
     return Object.keys(newErrors).length === 0;
@@ -280,6 +282,7 @@ function Issuebook() {
             onChange={handleChange}
             placeholder="Enter ISBN (optional)"
           />
+          {errors.ISBN && <span className="login-error">{errors.ISBN}</span>}
         </div>
         <div className="issuebook-group">
           <label htmlFor="bookdesc">Description:</label>

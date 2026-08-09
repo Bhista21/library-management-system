@@ -111,3 +111,26 @@ label {
   color: rgb(7, 7, 7);
   padding: 10px 20px;
 }
+
+/* Responsive additions — desktop styles above remain unchanged */
+@media (max-width: 650px) {
+  .register-container {
+    width: calc(100% - 30px);
+    max-width: none;
+    padding: 20px 15px;
+  }
+  .register-form { max-width: 100%; margin: 25px auto; padding: 10px 5px; }
+  .register-radio-group { flex-wrap: wrap; gap: 12px; }
+  .register-button-group { flex-direction: column; }
+  .register-button-group button { width: 100%; }
+  .register-success-popup {
+    width: calc(100% - 30px);
+    max-width: 300px;
+    padding: 22px;
+  }
+}
+@media (max-width: 400px) {
+  .register-container { width: calc(100% - 20px); padding: 18px 12px; }
+  .register-title { font-size: 24px; }
+  .register-subtitle { font-size: 14px; }
+}

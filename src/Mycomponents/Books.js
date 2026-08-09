@@ -127,6 +127,10 @@ function Books() {
                 {books.map((book) => (
                   <tr
                     key={book.id}
+                    onClick={() => {
+                      window.location.href = `/book/${book.id}`;
+                    }}
+                    style={{ cursor: "pointer" }}
                     className={Number(book.stock) < 5 ? "low-stock" : ""}
                   >
                     <td>{book.title}</td>
