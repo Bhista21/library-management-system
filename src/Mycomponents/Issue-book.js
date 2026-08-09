@@ -8,6 +8,7 @@ function Issuebook() {
     Stock: "",
     Genre: "",
     ISBN: "",
+    Description: "",
   });
 
   const [fileName, setFileName] = useState("No files selected.");
@@ -290,7 +291,7 @@ function Issuebook() {
           <input
             type="text"
             id="bookdesc"
-            name="desc"
+            name="Description"
             value={formData.Description}
             onChange={handleChange}
             placeholder="Enter Desception"
