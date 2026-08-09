@@ -148,7 +148,7 @@ function Issuebook() {
 
       console.log("Sending book:", newBook);
 
-      const res = await fetch("http://localhost:5000/api/books", {
+      const res = await fetch("/api/books", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
