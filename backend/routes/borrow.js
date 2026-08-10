@@ -1,5 +1,5 @@
 const express = require("express");
-const { db, all } = require("../database");
+const { db, get, all, run } = require("../database");
 const { authenticateToken, requireAdmin } = require("../middleware/auth");
 
 const router = express.Router();
@@ -316,5 +316,69 @@ router.get("/", authenticateToken, async (req, res) => {
     });
   }
 });
+// =====================================================
+// GET /api/borrow/active
+// GET ALL CURRENTLY BORROWED BOOKS
+// =====================================================
 
+router.get("/active", async (req, res) => {
+  try {
+    const records = await all(`
+      SELECT
+        br.id,
+        br.book_id,
+        br.user_id,
+        br.issue_date,
+        br.status,
+
+        b.title AS book_title,
+
+        u.first_name,
+        u.last_name,
+        u.email
+
+      FROM borrow_records br
+
+      JOIN books b
+        ON br.book_id = b.id
+
+      JOIN users u
+        ON br.user_id = u.id
+
+      WHERE br.status = 'issued'
+
+      ORDER BY br.issue_date DESC
+    `);
+
+    const borrowedBooks = records.map((record) => ({
+      id: record.id,
+      book_id: record.book_id,
+      user_id: record.user_id,
+
+      book_title: record.book_title,
+
+      member_name:
+        `${record.first_name || ""} ${record.last_name || ""}`.trim() ||
+        "Unknown",
+
+      email: record.email,
+
+      issue_date: record.issue_date,
+
+      status: record.status,
+    }));
+
+    return res.json({
+      success: true,
+      records: borrowedBooks,
+    });
+  } catch (err) {
+    console.error("Get active borrow records error:", err);
+
+    return res.status(500).json({
+      success: false,
+      message: "Could not fetch borrowed books.",
+    });
+  }
+});
 module.exports = router;

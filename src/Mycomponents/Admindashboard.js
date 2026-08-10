@@ -112,15 +112,15 @@ function AdminDashboard() {
             <span>Manage Books</span>
           </button>
 
-          <button onClick={() => navigate("/member")}>
+          <button onClick={() => navigate("/ManageMember")}>
             <span>Manage Members</span>
           </button>
 
-          <button onClick={() => navigate("/issuebook")}>
+          <button onClick={() => navigate("/Issuebooks")}>
             <span>Issue Book</span>
           </button>
 
-          <button onClick={() => navigate("/books")}>
+          <button onClick={() => navigate("/ReturnBooks")}>
             <span>Return Book</span>
           </button>
         </div>

@@ -5,6 +5,14 @@ import { faBookOpenReader } from "@fortawesome/free-solid-svg-icons";
 import { Link } from "react-router-dom";
 
 function Nav() {
+  const user = JSON.parse(localStorage.getItem("user"));
+
+  const role = user?.role;
+
+  console.log("NAV ROLE:", role);
+
+  const dashboardPath =
+    role?.toLowerCase() === "admin" ? "/admin/dashboard" : "/Dashboard";
   return (
     <nav className="navbar">
       <h2>
@@ -23,6 +31,9 @@ function Nav() {
         </li>
         <li>
           <Link to="/Issuebooks">Issue Books</Link>
+        </li>
+        <li>
+          <Link to={dashboardPath}>Dashboard</Link>
         </li>
       </ul>
     </nav>

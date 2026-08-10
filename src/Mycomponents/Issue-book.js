@@ -273,7 +273,7 @@ function Issuebook() {
         {/* ISBN */}
 
         <div className="issuebook-group">
-          <label htmlFor="bookISBN">Issue date:</label>
+          <label htmlFor="bookISBN">ISBN:</label>
 
           <input
             type="text"

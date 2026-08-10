@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import "./Css/Bookdetail.css";
 
 function BookDetails() {
   const { id } = useParams();
+  const navigate = useNavigate();
 
   const [book, setBook] = useState(null);
   const [borrowRecord, setBorrowRecord] = useState(null);
@@ -13,6 +14,30 @@ function BookDetails() {
 
   const [borrowing, setBorrowing] = useState(false);
   const [returning, setReturning] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+
+  // =====================================================
+  // CHECK IF USER IS ADMIN
+  // =====================================================
+
+  const isAdmin = () => {
+    const token = localStorage.getItem("token");
+
+    if (!token) return false;
+
+    try {
+      const payload = JSON.parse(atob(token.split(".")[1]));
+
+      return (
+        payload.role === "admin" ||
+        payload.role === "Admin" ||
+        payload.isAdmin === true
+      );
+    } catch (err) {
+      console.error("Could not read token:", err);
+      return false;
+    }
+  };
 
   // =====================================================
   // LOAD BOOK + USER'S BORROW RECORD
@@ -31,10 +56,7 @@ function BookDetails() {
       setLoading(true);
       setError("");
 
-      // -------------------------
       // Get book
-      // -------------------------
-
       const bookResponse = await fetch(`/api/books/${id}`, {
         method: "GET",
         headers: {
@@ -50,10 +72,7 @@ function BookDetails() {
 
       setBook(bookData.book);
 
-      // -------------------------
       // Get borrow records
-      // -------------------------
-
       const borrowResponse = await fetch("/api/borrow", {
         method: "GET",
         headers: {
@@ -69,9 +88,7 @@ function BookDetails() {
         );
       }
 
-      // Find an ACTIVE borrow record
-      // belonging to this book.
-
+      // Find active borrow record for this book
       const activeRecord = borrowData.records.find(
         (record) =>
           Number(record.book_id) === Number(id) && record.status === "issued",
@@ -113,7 +130,6 @@ function BookDetails() {
       return;
     }
 
-    // Don't allow borrowing if already borrowed
     if (borrowRecord) {
       alert("You already have this book.");
       return;
@@ -142,7 +158,6 @@ function BookDetails() {
 
       alert("Book borrowed successfully!");
 
-      // Reload book + borrow record
       await loadBook();
     } catch (err) {
       console.error("Borrow error:", err);
@@ -189,7 +204,6 @@ function BookDetails() {
 
       alert(`${data.message}\nStock: ${data.stockBefore} → ${data.stockAfter}`);
 
-      // Reload book and borrow status
       await loadBook();
     } catch (err) {
       console.error("Return error:", err);
@@ -200,17 +214,64 @@ function BookDetails() {
   };
 
   // =====================================================
+  // DELETE BOOK - ADMIN ONLY
+  // =====================================================
+
+  const handleDelete = async () => {
+    if (!book) return;
+
+    const token = localStorage.getItem("token");
+
+    if (!token) {
+      alert("You are not logged in.");
+      return;
+    }
+
+    if (!isAdmin()) {
+      alert("Only administrators can delete books.");
+      return;
+    }
+
+    const confirmed = window.confirm(
+      `Are you sure you want to delete "${book.title}"?\n\nThis action cannot be undone.`,
+    );
+
+    if (!confirmed) return;
+
+    setDeleting(true);
+
+    try {
+      const response = await fetch(`/api/books/${id}`, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      const data = await response.json();
+
+      if (!response.ok || !data.success) {
+        alert(data.message || "Could not delete book.");
+        return;
+      }
+
+      alert("Book deleted successfully!");
+
+      navigate("/Books");
+    } catch (err) {
+      console.error("Delete error:", err);
+      alert("Could not reach the server.");
+    } finally {
+      setDeleting(false);
+    }
+  };
+
+  // =====================================================
   // LOADING
   // =====================================================
 
   if (loading) {
-    return (
-      <div className="bookdetail">
-        <div className="info">
-          <h2>Loading book...</h2>
-        </div>
-      </div>
-    );
+    return <div>Loading book...</div>;
   }
 
   // =====================================================
@@ -219,11 +280,9 @@ function BookDetails() {
 
   if (error) {
     return (
-      <div className="bookdetail">
-        <div className="info">
-          <h2>Could not load book</h2>
-          <p>{error}</p>
-        </div>
+      <div>
+        <h2>Could not load book</h2>
+        <p>{error}</p>
       </div>
     );
   }
@@ -233,22 +292,12 @@ function BookDetails() {
   // =====================================================
 
   if (!book) {
-    return (
-      <div className="bookdetail">
-        <div className="info">
-          <h2>Book not found.</h2>
-        </div>
-      </div>
-    );
+    return <div>Book not found.</div>;
   }
 
   // =====================================================
   // DESCRIPTION
   // =====================================================
-
-  // Your database column is "Description".
-  // Depending on the SQLite result, it may come back
-  // as Description rather than description.
 
   const description =
     book.description || book.Description || "No description available.";
@@ -257,16 +306,7 @@ function BookDetails() {
   // COVER IMAGE
   // =====================================================
 
-  let coverImage = book.cover_image;
-
-  /*
-    If your database contains a data URL:
-      data:image/jpeg;base64,...
-
-    it can be displayed directly.
-
-    If there is no image, show "No Image".
-  */
+  const coverImage = book.cover_image;
 
   // =====================================================
   // PAGE
@@ -346,6 +386,21 @@ function BookDetails() {
               disabled={returning}
             >
               {returning ? "Returning..." : "Return Book"}
+            </button>
+          </div>
+        )}
+
+        {/* ================= DELETE ================= */}
+
+        {isAdmin() && (
+          <div className="delete-section">
+            <button
+              type="button"
+              className="delete-btn"
+              onClick={handleDelete}
+              disabled={deleting}
+            >
+              {deleting ? "Deleting..." : "Delete Book"}
             </button>
           </div>
         )}

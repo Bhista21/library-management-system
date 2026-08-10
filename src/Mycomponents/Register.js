@@ -16,9 +16,6 @@ function Register() {
     terms: false,
   });
 
-  // Profile Picture State
-  const [fileName, setFileName] = useState("No files selected.");
-  const [previewUrl, setPreviewUrl] = useState("");
   const navigate = useNavigate();
   // Errors & Popup State
   const [errors, setErrors] = useState({});
@@ -43,19 +40,6 @@ function Register() {
     }
   };
 
-  // Profile Picture File Upload Handler
-  const handleFileChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      setFileName(file.name);
-      const reader = new FileReader();
-      reader.onload = (ev) => {
-        setPreviewUrl(ev.target.result);
-      };
-      reader.readAsDataURL(file);
-    }
-  };
-
   // Reset Form
   const handleReset = (e) => {
     if (e) e.preventDefault();
@@ -70,8 +54,6 @@ function Register() {
       role: "",
       terms: false,
     });
-    setFileName("No files selected.");
-    setPreviewUrl("");
     setErrors({});
     setShowPopup(false);
     if (fileInputRef.current) {
@@ -228,39 +210,6 @@ function Register() {
               <option value="Female">Female</option>
               <option value="Other">Other</option>
             </select>
-          </div>
-
-          <div>
-            <label>Profile Picture:</label>
-            <button
-              type="button"
-              id="browseBtn"
-              onClick={() => fileInputRef.current.click()}
-            >
-              Browse...
-            </button>
-
-            <input
-              type="file"
-              id="profilepic"
-              accept="image/*"
-              ref={fileInputRef}
-              onChange={handleFileChange}
-              style={{ display: "none" }}
-            />
-
-            <span id="FileName">{fileName}</span>
-
-            <div id="imagePreview" style={{ marginTop: "10px" }}>
-              {previewUrl && (
-                <img
-                  src={previewUrl}
-                  alt="Preview"
-                  width="120"
-                  style={{ borderRadius: "8px", border: "2px solid #666" }}
-                />
-              )}
-            </div>
           </div>
 
           <h2 className="register-subtitle">Account Details</h2>

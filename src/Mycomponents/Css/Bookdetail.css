@@ -87,13 +87,47 @@ h4 {
 .return-btn:hover {
   background: #9f9fa0;
 }
+.delete-section {
+  margin-top: 25px;
+}
 
+.delete-btn {
+  background-color: #dc2626;
+  color: white;
+  border: none;
+  padding: 12px 22px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.delete-btn:hover {
+  background-color: #b91c1c;
+}
+
+.delete-btn:disabled {
+  background-color: #999;
+  cursor: not-allowed;
+}
 /* Responsive additions — desktop styles above remain unchanged */
 @media (max-width: 800px) {
-  .bookdetail { width: 90%; gap: 25px; padding: 25px; }
-  .cover-pic img { width: 230px; height: 345px; }
-  .info h1 { font-size: 1.7rem; }
-  .book-meta p, h4 { font-size: 16px; }
+  .bookdetail {
+    width: 90%;
+    gap: 25px;
+    padding: 25px;
+  }
+  .cover-pic img {
+    width: 230px;
+    height: 345px;
+  }
+  .info h1 {
+    font-size: 1.7rem;
+  }
+  .book-meta p,
+  h4 {
+    font-size: 16px;
+  }
 }
 @media (max-width: 600px) {
   .bookdetail {
@@ -108,7 +142,16 @@ h4 {
     height: auto;
     aspect-ratio: 2 / 3;
   }
-  .info h1 { font-size: 1.5rem; }
-  .book-meta p, h4 { font-size: 15px; line-height: 1.6; }
-  .borrow-btn, .return-btn { width: 100%; }
+  .info h1 {
+    font-size: 1.5rem;
+  }
+  .book-meta p,
+  h4 {
+    font-size: 15px;
+    line-height: 1.6;
+  }
+  .borrow-btn,
+  .return-btn {
+    width: 100%;
+  }
 }

@@ -74,7 +74,7 @@ function Member() {
 
       // Save user information
       localStorage.setItem("user", JSON.stringify(data.user));
-
+      console.log(data);
       // IMPORTANT:
       // Use the role returned by the BACKEND,
       // not the role selected in the frontend.

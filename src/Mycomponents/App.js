@@ -1,6 +1,6 @@
 import React from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-
+import ManageMember from "./ManageMember";
 import Footer from "./footer";
 import Nav from "./nav";
 import Books from "./Books";
@@ -11,6 +11,7 @@ import Register from "./Register";
 import Bookdeatils from "./Bookdetail";
 import AdminDashboard from "./Admindashboard";
 import UserDashboard from "./Userdashboard";
+import ReturnBooks from "./ReturnBooks";
 import "./Css/App.css";
 
 function App() {
@@ -30,8 +31,9 @@ function App() {
             <Route path="/Register" element={<Register />} />
             <Route path="/Book/:id" element={<Bookdeatils />} />
             <Route path="/admin/dashboard" element={<AdminDashboard />} />
-
+            <Route path="/ManageMember" element={<ManageMember />} />
             <Route path="/dashboard" element={<UserDashboard />} />
+            <Route path="/ReturnBooks" element={<ReturnBooks />} />
           </Routes>
         </main>
 

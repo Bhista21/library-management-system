@@ -6,35 +6,69 @@ const db = createClient({
   authToken: process.env.TURSO_AUTH_TOKEN,
 });
 
+// =====================================================
+// GET ONE ROW
+// =====================================================
+
 async function get(sql, args = []) {
-  const result = await db.execute({ sql, args });
+  const result = await db.execute({
+    sql,
+    args,
+  });
+
   return result.rows[0];
 }
 
+// =====================================================
+// GET MULTIPLE ROWS
+// =====================================================
+
 async function all(sql, args = []) {
-  const result = await db.execute({ sql, args });
+  const result = await db.execute({
+    sql,
+    args,
+  });
+
   return result.rows;
 }
 
+// =====================================================
+// INSERT / UPDATE / DELETE
+// =====================================================
+
 async function run(sql, args = []) {
-  const result = await db.execute({ sql, args });
+  const result = await db.execute({
+    sql,
+    args,
+  });
+
   return {
-    // Turso returns this as a BigInt — JSON.stringify cannot
-    // serialize BigInt, so convert it to a plain Number here.
+    // Turso returns this as a BigInt.
+    // Convert it to Number so JSON.stringify works.
     lastInsertRowid:
       result.lastInsertRowid != null ? Number(result.lastInsertRowid) : null,
+
     changes: result.rowsAffected,
   };
 }
 
-// Schema init is async now (network call), so we run it once and cache
-// the promise. Every request awaits this before touching the DB — this
-// matters on serverless (Vercel) where a "cold start" could otherwise
-// race a query against table creation.
+// =====================================================
+// DATABASE SCHEMA
+// =====================================================
+
+// Schema initialization is async because Turso is a
+// remote database. Cache the promise so the schema is
+// initialized only once per server instance.
+
 let schemaReady = null;
+
 function ensureSchema() {
   if (!schemaReady) {
     schemaReady = (async () => {
+      // =========================
+      // USERS
+      // =========================
+
       await db.execute(`
         CREATE TABLE IF NOT EXISTS users (
           id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -49,6 +83,10 @@ function ensureSchema() {
         );
       `);
 
+      // =========================
+      // BOOKS
+      // =========================
+
       await db.execute(`
         CREATE TABLE IF NOT EXISTS books (
           id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -58,12 +96,16 @@ function ensureSchema() {
           isbn TEXT,
           stock INTEGER NOT NULL DEFAULT 0,
           cover_image TEXT,
-          Description TEXt,
+          Description TEXT,
           created_by INTEGER,
           created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
           FOREIGN KEY (created_by) REFERENCES users(id)
         );
       `);
+
+      // =========================
+      // BORROW RECORDS
+      // =========================
 
       await db.execute(`
         CREATE TABLE IF NOT EXISTS borrow_records (
@@ -71,7 +113,6 @@ function ensureSchema() {
           book_id INTEGER NOT NULL,
           user_id INTEGER NOT NULL,
           issue_date DATETIME DEFAULT CURRENT_TIMESTAMP,
-          due_date DATETIME,
           return_date DATETIME,
           status TEXT NOT NULL DEFAULT 'issued',
           FOREIGN KEY (book_id) REFERENCES books(id),
@@ -82,7 +123,18 @@ function ensureSchema() {
       console.log("💾 Turso schema ready");
     })();
   }
+
   return schemaReady;
 }
 
-module.exports = { db, get, all, run, ensureSchema };
+// =====================================================
+// EXPORT
+// =====================================================
+
+module.exports = {
+  db,
+  get,
+  all,
+  run,
+  ensureSchema,
+};
