@@ -54,13 +54,8 @@
   margin-top: 3px;
 }
 
-/* =========================
-   TABLE CONTAINER
-========================= */
-
 .members-table-container {
   width: 100%;
-  overflow-x: auto;
   background: white;
   border-radius: 12px;
   box-shadow: 0 3px 15px rgba(0, 0, 0, 0.08);
