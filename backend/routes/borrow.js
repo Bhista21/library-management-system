@@ -104,10 +104,9 @@ router.post("/", authenticateToken, async (req, res) => {
         (
           book_id,
           user_id,
-          due_date,
           status
         )
-        VALUES (?, ?, ?, 'issued')
+        VALUES (?, ?, 'issued')
       `,
       args: [bookId, userId, dueDate || null],
     });

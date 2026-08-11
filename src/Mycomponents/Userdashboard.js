@@ -80,8 +80,6 @@ function UserDashboard() {
 
       <div className="user-stats">
         <div className="user-stat-card">
-   
-
           <div>
             <small>Currently Borrowed</small>
             <h2>{stats.currentlyBorrowed}</h2>
@@ -89,8 +87,6 @@ function UserDashboard() {
         </div>
 
         <div className="user-stat-card">
-          
-
           <div>
             <small>Overdue</small>
             <h2>{stats.overdueBooks}</h2>
@@ -98,8 +94,6 @@ function UserDashboard() {
         </div>
 
         <div className="user-stat-card">
-          
-
           <div>
             <small>Total Borrowed</small>
             <h2>{stats.totalBorrowed}</h2>
@@ -107,7 +101,6 @@ function UserDashboard() {
         </div>
 
         <div className="user-stat-card">
-          
           <div>
             <small>Available Books</small>
             <h2>{stats.availableBooks}</h2>
@@ -133,7 +126,6 @@ function UserDashboard() {
         ) : (
           data.myBooks.map((book) => (
             <div className="user-book" key={book.id}>
-              
               <div className="user-book-info">
                 <h3>{book.title}</h3>
 
@@ -142,10 +134,6 @@ function UserDashboard() {
                 <small>
                   Status: <strong>{book.status}</strong>
                 </small>
-
-                {book.due_date && (
-                  <div>Due: {new Date(book.due_date).toLocaleDateString()}</div>
-                )}
               </div>
             </div>
           ))
@@ -164,8 +152,6 @@ function UserDashboard() {
         <div className="recommended-books">
           {data.recentBooks.map((book) => (
             <div className="recommended-book" key={book.id}>
-         
-
               <h3>{book.title}</h3>
 
               <p>{book.author || "Unknown author"}</p>

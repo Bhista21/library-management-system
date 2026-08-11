@@ -34,8 +34,6 @@ router.get("/admin", authenticateToken, requireAdmin, async (req, res) => {
       SELECT COUNT(*) AS count
       FROM borrow_records
       WHERE status = 'issued'
-      AND due_date IS NOT NULL
-      AND datetime(due_date) < datetime('now')
     `);
 
     const availableCopies = await get(`
@@ -47,7 +45,7 @@ router.get("/admin", authenticateToken, requireAdmin, async (req, res) => {
       SELECT
         br.id,
         br.issue_date,
-        br.due_date,
+  
         br.return_date,
         br.status,
         b.title AS book_title,
@@ -135,8 +133,6 @@ router.get("/user", authenticateToken, async (req, res) => {
       FROM borrow_records
       WHERE user_id = ?
       AND status = 'issued'
-      AND due_date IS NOT NULL
-      AND datetime(due_date) < datetime('now')
     `,
       [userId],
     );
@@ -153,7 +149,6 @@ router.get("/user", authenticateToken, async (req, res) => {
         br.id,
         br.book_id,
         br.issue_date,
-        br.due_date,
         br.return_date,
         br.status,
         b.title,
