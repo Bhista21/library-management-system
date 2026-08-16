@@ -108,7 +108,7 @@ router.post("/", authenticateToken, async (req, res) => {
         )
         VALUES (?, ?, 'issued')
       `,
-      args: [bookId, userId, dueDate || null],
+      args: [bookId, userId || null],
     });
 
     await tx.commit();
